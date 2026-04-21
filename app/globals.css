@@ -1,26 +1,130 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-outfit);
+  --font-display: var(--font-playfair);
+  --font-heading: var(--font-outfit);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Zonaly custom tokens */
+  --color-bg-warm: var(--bg-warm);
+  --color-bg-dark: var(--bg-dark);
+  --color-accent-light: var(--accent-light);
+  --color-text-muted: var(--text-muted);
+  --color-text-light: var(--text-light);
+  --color-score-a: var(--score-a);
+  --color-score-b: var(--score-b);
+  --color-score-c: var(--score-c);
+  --color-score-d: var(--score-d);
+  --color-score-e: var(--score-e);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-pulse-dot: pulse-dot 2s ease infinite;
+  --animate-scroll-bounce: scroll-bounce 2s ease-in-out infinite;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(0.7);
+    }
+  }
+  @keyframes scroll-bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+:root {
+  --background: #f5f2ec;
+  --foreground: #1c1832;
+  --card: #ffffff;
+  --card-foreground: #1c1832;
+  --popover: #ffffff;
+  --popover-foreground: #1c1832;
+  --primary: #4f3ce0;
+  --primary-foreground: #ffffff;
+  --secondary: #ece8df;
+  --secondary-foreground: #1c1832;
+  --muted: #ece8df;
+  --muted-foreground: #635e73;
+  --accent: #ece8df;
+  --accent-foreground: #1c1832;
+  --destructive: #e04040;
+  --border: rgba(79, 60, 224, 0.1);
+  --input: rgba(79, 60, 224, 0.12);
+  --ring: #4f3ce0;
+  --radius: 1.125rem;
+
+  /* Zonaly brand tokens */
+  --bg-warm: #ece8df;
+  --bg-dark: #1e1a3a;
+  --accent-light: #6d5df5;
+  --text-muted: #635e73;
+  --text-light: #9f98b0;
+  --score-a: #1db954;
+  --score-b: #8ec639;
+  --score-c: #e6a817;
+  --score-d: #e87520;
+  --score-e: #e04040;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+  }
 }
