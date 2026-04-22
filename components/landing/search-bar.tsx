@@ -14,14 +14,10 @@ export function SearchBar() {
   const [highlight, setHighlight] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  useOnClickOutside(containerRef as React.RefObject<HTMLElement>, () =>
-    setOpen(false)
-  );
+  useOnClickOutside(containerRef as React.RefObject<HTMLElement>, () => setOpen(false));
 
   const isDirty = value !== (selected?.fulltext ?? "");
-  const { data: suggestions = [], isFetching } = useAddressAutocomplete(
-    isDirty ? value : ""
-  );
+  const { data: suggestions = [], isFetching } = useAddressAutocomplete(isDirty ? value : "");
   const geocode = useGeocodeAddress();
 
   const showDropdown = open && suggestions.length > 0 && isDirty;
@@ -61,16 +57,9 @@ export function SearchBar() {
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="relative z-30 w-full max-w-[580px] mx-auto"
-    >
-      <div className="flex items-center bg-background rounded-[60px] pl-7 pr-1.5 py-1.5 shadow-[0_4px_14px_rgba(20,16,36,0.06),0_24px_56px_rgba(20,16,36,0.1)] border-2 border-transparent transition-[border-color,box-shadow] duration-300 focus-within:border-primary focus-within:shadow-[0_4px_14px_rgba(20,16,36,0.06),0_24px_56px_rgba(20,16,36,0.1),0_0_0_6px_rgba(79,60,224,0.12)]">
-        <Search
-          className="text-text-light shrink-0 mr-3"
-          size={18}
-          strokeWidth={2}
-        />
+    <div ref={containerRef} className="relative z-30 mx-auto w-full max-w-[580px]">
+      <div className="bg-background focus-within:border-primary flex items-center rounded-[60px] border-2 border-transparent py-1.5 pr-1.5 pl-7 shadow-[0_4px_14px_rgba(20,16,36,0.06),0_24px_56px_rgba(20,16,36,0.1)] transition-[border-color,box-shadow] duration-300 focus-within:shadow-[0_4px_14px_rgba(20,16,36,0.06),0_24px_56px_rgba(20,16,36,0.1),0_0_0_6px_rgba(79,60,224,0.12)]">
+        <Search className="text-text-light mr-3 shrink-0" size={18} strokeWidth={2} />
         <input
           id="address-input"
           type="text"
@@ -78,16 +67,14 @@ export function SearchBar() {
           aria-expanded={showDropdown}
           aria-controls="address-suggestions"
           aria-autocomplete="list"
-          aria-activedescendant={
-            showDropdown ? `suggestion-${highlight}` : undefined
-          }
+          aria-activedescendant={showDropdown ? `suggestion-${highlight}` : undefined}
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           onFocus={() => value.length >= 3 && isDirty && setOpen(true)}
           onBlur={() => {
             // Si la fenêtre/onglet a perdu le focus, on ne fait rien
             if (!document.hasFocus()) return;
-          
+
             if (value === "") {
               setSelected(null);
             } else if (value !== selected?.fulltext) {
@@ -96,20 +83,20 @@ export function SearchBar() {
           }}
           onKeyDown={handleKeyDown}
           placeholder="12 rue de Rivoli, Paris 75001"
-          className="flex-1 border-none outline-none font-[inherit] text-[0.95rem] text-foreground bg-transparent py-3.5 font-normal placeholder:text-text-light min-w-0"
+          className="text-foreground placeholder:text-text-light min-w-0 flex-1 border-none bg-transparent py-3.5 font-[inherit] text-[0.95rem] font-normal outline-none"
         />
         {isFetching && (
           <Loader2
             aria-hidden
             size={22}
             strokeWidth={2}
-            className="shrink-0 mr-3 text-text-light animate-spin"
+            className="text-text-light mr-3 shrink-0 animate-spin"
           />
         )}
         <button
           type="button"
           onClick={handleAnalyze}
-          className="shrink-0 bg-primary text-white border-none py-3.5 px-[30px] rounded-[50px] font-[inherit] text-[0.88rem] font-semibold cursor-pointer flex items-center gap-2 tracking-[0.01em] shadow-[0_3px_12px_rgba(79,60,224,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-accent-light hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(79,60,224,0.35)] active:translate-y-0"
+          className="bg-primary hover:bg-accent-light flex shrink-0 cursor-pointer items-center gap-2 rounded-[50px] border-none px-[30px] py-3.5 font-[inherit] text-[0.88rem] font-semibold tracking-[0.01em] text-white shadow-[0_3px_12px_rgba(79,60,224,0.3)] transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-0.5 hover:shadow-[0_6px_24px_rgba(79,60,224,0.35)] active:translate-y-0"
         >
           {geocode.isPending ? (
             <Loader2 size={16} strokeWidth={2.5} className="animate-spin" />
@@ -126,7 +113,7 @@ export function SearchBar() {
         <ul
           id="address-suggestions"
           role="listbox"
-          className="absolute left-0 right-0 top-[calc(100%+6px)] bg-background rounded-[24px] shadow-[0_12px_32px_rgba(20,16,36,0.12)] overflow-hidden text-left z-10"
+          className="bg-background absolute top-[calc(100%+6px)] right-0 left-0 z-10 overflow-hidden rounded-[24px] text-left shadow-[0_12px_32px_rgba(20,16,36,0.12)]"
         >
           {suggestions.map((s, i) => (
             <li
@@ -137,15 +124,13 @@ export function SearchBar() {
               onClick={() => handleSelect(s)}
               onMouseDown={(e) => e.preventDefault()}
               onMouseEnter={() => setHighlight(i)}
-              className={`px-6 py-3 cursor-pointer text-[0.9rem] ${
+              className={`cursor-pointer px-6 py-3 text-[0.9rem] ${
                 i === highlight ? "bg-muted" : ""
               }`}
             >
-              <div className="text-foreground font-medium truncate">
-                {s.fulltext}
-              </div>
+              <div className="text-foreground truncate font-medium">{s.fulltext}</div>
               {(s.city || s.zipcode) && (
-                <div className="text-text-light text-[0.8rem] truncate">
+                <div className="text-text-light truncate text-[0.8rem]">
                   {[s.zipcode, s.city].filter(Boolean).join(" · ")}
                 </div>
               )}
@@ -153,7 +138,6 @@ export function SearchBar() {
           ))}
         </ul>
       )}
-
     </div>
   );
 }

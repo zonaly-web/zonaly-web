@@ -30,9 +30,9 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${outfit.variable} ${playfair.variable} h-full antialiased overscroll-y-none`}
+      className={`${outfit.variable} ${playfair.variable} h-full overscroll-y-none antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>
       </body>
     </html>

@@ -6,9 +6,7 @@ import {
 } from "./schemas";
 
 export async function fetchAutocomplete(q: string): Promise<AutocompleteResult[]> {
-  const res = await fetch(
-    `/api/geocode/autocomplete?q=${encodeURIComponent(q)}`,
-  );
+  const res = await fetch(`/api/geocode/autocomplete?q=${encodeURIComponent(q)}`);
   if (!res.ok) throw new Error(`autocomplete_failed_${res.status}`);
   const json = await res.json();
   return AutocompleteApiResponseSchema.parse(json).results;
