@@ -1,19 +1,17 @@
 export function Footer() {
   return (
-    <footer className="px-6 pt-12 pb-9 max-w-[1100px] mx-auto flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-0 text-center sm:text-left text-[0.78rem] text-text-light border-t border-foreground/[0.06]">
-      <span>
-        © 2025 Zonaly · Données : DVF, INSEE, ATMO, SSMSI, Géorisques, IGN, OSM
-      </span>
+    <footer className="text-text-light border-foreground/[0.06] mx-auto flex max-w-[1100px] flex-col items-center gap-4 border-t px-6 pt-12 pb-9 text-center text-[0.78rem] sm:flex-row sm:justify-between sm:gap-0 sm:text-left">
+      <span>© 2025 Zonaly · Données : DVF, INSEE, ATMO, SSMSI, Géorisques, IGN, OSM</span>
       <div className="flex gap-6">
         <a
           href="#"
-          className="text-text-muted no-underline font-medium transition-colors duration-200 hover:text-primary"
+          className="text-text-muted hover:text-primary font-medium no-underline transition-colors duration-200"
         >
           Mentions légales
         </a>
         <a
           href="#"
-          className="text-text-muted no-underline font-medium transition-colors duration-200 hover:text-primary"
+          className="text-text-muted hover:text-primary font-medium no-underline transition-colors duration-200"
         >
           CGU
         </a>

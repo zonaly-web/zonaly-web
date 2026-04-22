@@ -96,43 +96,42 @@ const dimensions: Dimension[] = [
 
 export function ResultCard() {
   return (
-    <section id="example" className="px-6 pt-10 pb-15 max-w-[1100px] mx-auto">
+    <section id="example" className="mx-auto max-w-[1100px] px-6 pt-10 pb-15">
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, margin: "-40px" }}
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="relative overflow-hidden bg-bg-dark rounded-3xl p-8 md:p-[52px] shadow-[0_8px_48px_rgba(20,16,36,0.18),0_0_0_1px_rgba(255,255,255,0.03)_inset]"
+        className="bg-bg-dark relative overflow-hidden rounded-3xl p-8 shadow-[0_8px_48px_rgba(20,16,36,0.18),0_0_0_1px_rgba(255,255,255,0.03)_inset] md:p-[52px]"
       >
         {/* Ambient blobs */}
         <div
           aria-hidden
-          className="absolute -top-30 -right-30 w-[360px] h-[360px] bg-primary/[0.07] rounded-full blur-[70px] pointer-events-none"
+          className="bg-primary/[0.07] pointer-events-none absolute -top-30 -right-30 h-[360px] w-[360px] rounded-full blur-[70px]"
         />
         <div
           aria-hidden
-          className="absolute -bottom-20 -left-20 w-[250px] h-[250px] bg-score-a/[0.04] rounded-full blur-[60px] pointer-events-none"
+          className="bg-score-a/[0.04] pointer-events-none absolute -bottom-20 -left-20 h-[250px] w-[250px] rounded-full blur-[60px]"
         />
 
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start gap-7 mb-11 relative z-1">
-          <div className="w-[78px] h-[78px] rounded-[20px] grid place-items-center text-[2.1rem] font-extrabold text-bg-dark bg-score-b shrink-0 shadow-[0_4px_24px_rgba(142,198,57,0.35)] tracking-[-0.02em]">
+        <div className="relative z-1 mb-11 flex flex-col items-start gap-7 sm:flex-row">
+          <div className="text-bg-dark bg-score-b grid h-[78px] w-[78px] shrink-0 place-items-center rounded-[20px] text-[2.1rem] font-extrabold tracking-[-0.02em] shadow-[0_4px_24px_rgba(142,198,57,0.35)]">
             B
           </div>
           <div className="flex-1">
-            <div className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-white/35 mb-1.5">
+            <div className="mb-1.5 text-[0.7rem] font-semibold tracking-[0.1em] text-white/35 uppercase">
               Score global
             </div>
-            <h2 className="text-[1.6rem] font-bold text-white mb-3.5 tracking-[-0.02em]">
+            <h2 className="mb-3.5 text-[1.6rem] font-bold tracking-[-0.02em] text-white">
               12 rue de Rivoli, Paris 75001
             </h2>
-            <p className="text-[0.88rem] text-white/55 leading-[1.65]">
-              Quartier globalement favorable à l&apos;investissement locatif.
-              Point fort : valorisation exceptionnelle (+47% sur 10 ans) et
-              accessibilité maximale. Point de vigilance : qualité de l&apos;air
-              en deçà des recommandations OMS.
+            <p className="text-[0.88rem] leading-[1.65] text-white/55">
+              Quartier globalement favorable à l&apos;investissement locatif. Point fort :
+              valorisation exceptionnelle (+47% sur 10 ans) et accessibilité maximale. Point de
+              vigilance : qualité de l&apos;air en deçà des recommandations OMS.
             </p>
-            <p className="text-[0.72rem] text-white/25 mt-3">
+            <p className="mt-3 text-[0.72rem] text-white/25">
               Analysé le 10 avril 2025 · Sources : DVF, INSEE, ATMO, SSMSI, IGN
             </p>
           </div>
@@ -140,38 +139,35 @@ export function ResultCard() {
 
         {/* Dimensions label */}
         <div className="relative z-1 mb-6">
-          <div className="text-[0.7rem] font-semibold uppercase tracking-[0.1em] text-accent-light mb-[5px]">
+          <div className="text-accent-light mb-[5px] text-[0.7rem] font-semibold tracking-[0.1em] uppercase">
             Détail par thématique
           </div>
-          <h3 className="text-[1.35rem] font-bold text-white tracking-[-0.02em]">
+          <h3 className="text-[1.35rem] font-bold tracking-[-0.02em] text-white">
             4 dimensions analysées.
           </h3>
         </div>
 
         {/* Dimensions grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 relative z-1">
+        <div className="relative z-1 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
           {dimensions.map((d, i) => (
             <div
               key={d.name}
-              className="bg-white/[0.045] border border-white/[0.07] rounded-[18px] py-6 px-5 backdrop-blur-md transition-all duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-white/[0.08] hover:border-white/[0.12] hover:-translate-y-[3px]"
+              className="rounded-[18px] border border-white/[0.07] bg-white/[0.045] px-5 py-6 backdrop-blur-md transition-all duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-[3px] hover:border-white/[0.12] hover:bg-white/[0.08]"
             >
-              <div className="flex items-center justify-between mb-5">
+              <div className="mb-5 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-[0.88rem] font-semibold text-white">
-                  <span
-                    className="w-2 h-2 rounded-full"
-                    style={{ background: d.dotColor }}
-                  />
+                  <span className="h-2 w-2 rounded-full" style={{ background: d.dotColor }} />
                   {d.name}
                 </div>
                 <div
-                  className={`text-[1.5rem] font-extrabold leading-none tracking-[-0.02em] ${d.scoreColorClass}`}
+                  className={`text-[1.5rem] leading-none font-extrabold tracking-[-0.02em] ${d.scoreColorClass}`}
                 >
                   {d.score}
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 mb-4">
-                <div className="flex justify-between items-center text-[0.77rem]">
+              <div className="mb-4 flex flex-col gap-3">
+                <div className="flex items-center justify-between text-[0.77rem]">
                   <span className="text-white/40">{d.metrics[0].label}</span>
                   <span
                     className={`font-semibold tabular-nums ${d.metrics[0].valueClass ?? "text-white"}`}
@@ -179,7 +175,7 @@ export function ResultCard() {
                     {d.metrics[0].value}
                   </span>
                 </div>
-                <div className="h-[3px] bg-white/[0.07] rounded-[2px] my-1 overflow-hidden">
+                <div className="my-1 h-[3px] overflow-hidden rounded-[2px] bg-white/[0.07]">
                   <motion.div
                     initial={{ width: "0%" }}
                     whileInView={{ width: `${d.bar.width}%` }}
@@ -193,21 +189,16 @@ export function ResultCard() {
                   />
                 </div>
                 {d.metrics.slice(1).map((m) => (
-                  <div
-                    key={m.label}
-                    className="flex justify-between items-center text-[0.77rem]"
-                  >
+                  <div key={m.label} className="flex items-center justify-between text-[0.77rem]">
                     <span className="text-white/40">{m.label}</span>
-                    <span
-                      className={`font-semibold tabular-nums ${m.valueClass ?? "text-white"}`}
-                    >
+                    <span className={`font-semibold tabular-nums ${m.valueClass ?? "text-white"}`}>
                       {m.value}
                     </span>
                   </div>
                 ))}
               </div>
 
-              <p className="text-[0.74rem] text-white/30 leading-[1.55] mt-3.5 pt-3.5 border-t border-white/[0.05]">
+              <p className="mt-3.5 border-t border-white/[0.05] pt-3.5 text-[0.74rem] leading-[1.55] text-white/30">
                 {d.insight}
               </p>
             </div>
