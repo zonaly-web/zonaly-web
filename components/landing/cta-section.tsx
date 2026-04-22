@@ -29,6 +29,16 @@ export function CtaSection() {
         </p>
         <a
           href="#top"
+          onClick={(e) => {
+            e.preventDefault();
+            const input = document.getElementById("address-input");
+            document
+              .getElementById("top")
+              ?.scrollIntoView({ behavior: "smooth", block: "start" });
+            // Focus after the smooth-scroll has started so the browser
+            // doesn't cancel the scroll when the input gains focus.
+            setTimeout(() => input?.focus({ preventScroll: true }), 600);
+          }}
           className="inline-flex items-center gap-2.5 py-[18px] px-12 bg-primary text-white border-none rounded-[60px] font-[inherit] text-[0.95rem] font-semibold no-underline transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] shadow-[0_4px_16px_rgba(79,60,224,0.3)] hover:bg-accent-light hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(79,60,224,0.35)]"
         >
           Lancer une analyse

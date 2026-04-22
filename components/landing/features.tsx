@@ -29,11 +29,11 @@ export function Features() {
             <div className="flex items-center justify-center relative h-[108px] px-6 pt-7 pb-5">
               <div className="flex gap-1.5 items-end">
                 {[
-                  { letter: "A", h: 52, bg: "var(--score-a)", fg: "#fff" },
+                  { letter: "A", h: 52, bg: "var(--score-a)", fg: "#1c1832" },
                   { letter: "B", h: 44, bg: "var(--score-b)", fg: "#1c1832" },
                   { letter: "C", h: 36, bg: "var(--score-c)", fg: "#1c1832" },
-                  { letter: "D", h: 28, bg: "var(--score-d)", fg: "#fff" },
-                  { letter: "E", h: 22, bg: "var(--score-e)", fg: "#fff" },
+                  { letter: "D", h: 28, bg: "var(--score-d)", fg: "#1c1832" },
+                  { letter: "E", h: 22, bg: "var(--score-e)", fg: "#1c1832" },
                 ].map((p, i) => (
                   <div
                     key={p.letter}
