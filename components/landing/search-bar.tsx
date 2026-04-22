@@ -4,10 +4,12 @@ import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
 import { useGeocodeAddress } from "@/hooks/use-geocode-address";
 import type { AutocompleteResult } from "@/lib/geocoding/schemas";
 import { ArrowRight, Loader2, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { useOnClickOutside } from "usehooks-ts";
 
 export function SearchBar() {
+  const router = useRouter();
   const [value, setValue] = useState("");
   const [selected, setSelected] = useState<AutocompleteResult | null>(null);
   const [open, setOpen] = useState(false);
@@ -54,6 +56,7 @@ export function SearchBar() {
   function handleAnalyze() {
     if (!selected) return;
     geocode.mutate(selected.fulltext);
+    router.push("/analyse");
   }
 
   return (

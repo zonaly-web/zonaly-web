@@ -10,6 +10,10 @@ export function CtaSection() {
         aria-hidden
         className="via-foreground/8 absolute top-0 right-[10%] left-[10%] h-px bg-gradient-to-r from-transparent to-transparent"
       />
+      <div
+        aria-hidden
+        className="via-foreground/8 absolute right-[10%] bottom-0 left-[10%] h-px bg-gradient-to-r from-transparent to-transparent"
+      />
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         whileInView={{ opacity: 1, y: 0 }}

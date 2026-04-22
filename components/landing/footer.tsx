@@ -1,6 +1,13 @@
-export function Footer() {
+import { cn } from "@/lib/utils";
+
+export function Footer({ isAnalyse = false }: { isAnalyse?: boolean }) {
   return (
-    <footer className="text-text-light border-foreground/[0.06] mx-auto flex max-w-[1100px] flex-col items-center gap-4 border-t px-6 pt-12 pb-9 text-center text-[0.78rem] sm:flex-row sm:justify-between sm:gap-0 sm:text-left">
+    <footer
+      className={cn(
+        "text-text-light flex flex-col items-center gap-4 px-5 pb-7 text-center text-[0.78rem] sm:flex-row sm:justify-between sm:gap-0 sm:text-left md:px-12",
+        isAnalyse ? "pt-4" : "pt-12",
+      )}
+    >
       <span>© 2025 Zonaly · Données : DVF, INSEE, ATMO, SSMSI, Géorisques, IGN, OSM</span>
       <div className="flex gap-6">
         <a
