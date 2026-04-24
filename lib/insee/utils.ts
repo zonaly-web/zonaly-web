@@ -7,9 +7,10 @@ const TSH_TENANT_FURNISHED_SUBLET = "212_222";
 const TSH_TENANT_HLM = "221";
 const TSH_TOTAL = "_T";
 
-export function parseFilosofi(
-  obs: MelodiObservation[] | null,
-): { revenuMedianEurYr: number | null; year: number | null } {
+export function parseFilosofi(obs: MelodiObservation[] | null): {
+  revenuMedianEurYr: number | null;
+  year: number | null;
+} {
   if (!obs || obs.length === 0) return { revenuMedianEurYr: null, year: null };
   const match = obs.find(
     (o) => o.dimensions.FILOSOFI_MEASURE === "MED_SL" && o.dimensions.UNIT_MEASURE === "EUR_YR",
