@@ -53,10 +53,18 @@ export function SearchBar() {
     }
   }
 
-  function handleAnalyze() {
+  async function handleAnalyze() {
     if (!selected) return;
-    geocode.mutate(selected.fulltext);
-    router.push("/analyse");
+    const feature = await geocode.mutateAsync(selected.fulltext);
+    const citycode = feature?.properties.citycode;
+    if (!feature || !citycode) return;
+    const params = new URLSearchParams({
+      label: feature.properties.label,
+      citycode,
+      lon: String(feature.geometry.coordinates[0]),
+      lat: String(feature.geometry.coordinates[1]),
+    });
+    router.push(`/analyse?${params.toString()}`);
   }
 
   return (

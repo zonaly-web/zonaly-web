@@ -6,8 +6,5 @@ import { fetchGeocode } from "@/lib/geocoding/client";
 export function useGeocodeAddress() {
   return useMutation({
     mutationFn: (q: string) => fetchGeocode(q),
-    onSuccess: (feature) => {
-      console.log("[geocode]", feature);
-    },
   });
 }
