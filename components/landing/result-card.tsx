@@ -2,7 +2,8 @@
 
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { useCeremaPrix } from "@/hooks/use-cerema-prix";
+import { useCeremaPrix } from "@/lib/cerema/use-cerema";
+import { useInseeCommune } from "@/lib/insee/use-insee";
 
 type BarColor = "green" | "yellow-green" | "yellow" | "orange";
 
@@ -23,7 +24,7 @@ type Dimension = {
 };
 
 type MetricValueProps = {
-  kind: "price" | "evolution";
+  kind: "price" | "evolution" | "percent" | "eurYear";
   value: number | null | undefined;
   isLoading: boolean;
   isError: boolean;
@@ -43,33 +44,43 @@ const pctFmt = new Intl.NumberFormat("fr-FR", {
   maximumFractionDigits: 1,
   signDisplay: "exceptZero",
 });
+const shareFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
   if (isLoading) {
+    const widthClass = kind === "price" || kind === "eurYear" ? "w-16" : "w-12";
     return (
       <span
         aria-hidden
-        className={`inline-block animate-pulse rounded bg-white/10 align-middle ${
-          kind === "price" ? "h-4 w-16" : "h-4 w-12"
-        }`}
+        className={`inline-block h-4 animate-pulse rounded bg-white/10 align-middle ${widthClass}`}
       />
     );
   }
-  if (isError || !value) {
+  if (isError || value == null) {
     return <span>N/A</span>;
   }
-  return <span>{kind === "price" ? `${eurFmt.format(value)} €` : pctFmt.format(value)}</span>;
+  switch (kind) {
+    case "price":
+      return <span>{`${eurFmt.format(value)} €`}</span>;
+    case "evolution":
+      return <span>{pctFmt.format(value)}</span>;
+    case "percent":
+      return <span>{`${shareFmt.format(value)} %`}</span>;
+    case "eurYear":
+      return <span>{`${eurFmt.format(value)} €/an`}</span>;
+  }
 }
 
 export function ResultCard({ address, citycode }: { address?: string; citycode?: string } = {}) {
   const { data, isLoading, isError } = useCeremaPrix(citycode);
+  const insee = useInseeCommune(citycode);
 
   const immobilierMetrics: Metric[] = !citycode
     ? [
         { label: "Prix médian au m²", value: "9 800 €" },
         { label: "Évolution 10 ans", value: "+47%" },
         { label: "Part locataires", value: "73%" },
-        { label: "Revenu médian IRIS", value: "38 400 €/an" },
+        { label: "Revenu médian", value: "38 400 €/an" },
       ]
     : [
         {
@@ -94,8 +105,28 @@ export function ResultCard({ address, citycode }: { address?: string; citycode?:
             />
           ),
         },
-        { label: "Part locataires", value: "73%" },
-        { label: "Revenu médian IRIS", value: "38 400 €/an" },
+        {
+          label: "Part locataires",
+          value: (
+            <MetricValue
+              kind="percent"
+              value={insee.data?.partLocataires}
+              isLoading={insee.isLoading}
+              isError={insee.isError}
+            />
+          ),
+        },
+        {
+          label: "Revenu médian",
+          value: (
+            <MetricValue
+              kind="eurYear"
+              value={insee.data?.revenuMedianEurYr}
+              isLoading={insee.isLoading}
+              isError={insee.isError}
+            />
+          ),
+        },
       ];
 
   const dimensions: Dimension[] = [

@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dlx *)",
+      "Bash(pnpm add *)",
+      "Bash(pnpm dev *)",
+      "Bash(curl -s -o /tmp/page.html -w \"%{http_code}\\\\n\" http://localhost:3000)",
+      "Read(//tmp/**)",
+      "Bash(npm install *)",
+      "Bash(pnpm format *)",
+      "Bash(pnpm lint *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(npx tsc *)",
+      "Bash(curl -sS 'http://localhost:3000/api/cerema/prix?citycode=59350')",
+      "Bash(curl -sS 'http://localhost:3000/api/cerema/prix?citycode=33063')"
+    ]
+  }
+}

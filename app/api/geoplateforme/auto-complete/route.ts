@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   AutocompleteQuerySchema,
   AutocompleteUpstreamResponseSchema,
-} from "@/lib/geocoding/schemas";
+} from "@/lib/geoplateforme/schemas";
+import { NextRequest, NextResponse } from "next/server";
 
 const UPSTREAM = "https://data.geopf.fr/geocodage/completion";
 
