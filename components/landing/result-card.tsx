@@ -1,9 +1,10 @@
 "use client";
 
+import { useCeremaPrix } from "@/lib/cerema/use-cerema";
+import { useGeorisques } from "@/lib/georisques/use-georisque";
+import { useInseeCommune } from "@/lib/insee/use-insee";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
-import { useCeremaPrix } from "@/lib/cerema/use-cerema";
-import { useInseeCommune } from "@/lib/insee/use-insee";
 
 type BarColor = "green" | "yellow-green" | "yellow" | "orange";
 
@@ -46,6 +47,27 @@ const pctFmt = new Intl.NumberFormat("fr-FR", {
 });
 const shareFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
+function EnvMetricValue({
+  value,
+  isLoading,
+  isError,
+}: {
+  value: string | undefined;
+  isLoading: boolean;
+  isError: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <span
+        aria-hidden
+        className="inline-block h-4 w-14 animate-pulse rounded bg-white/10 align-middle"
+      />
+    );
+  }
+  if (isError || !value) return <span>—</span>;
+  return <span>{value}</span>;
+}
+
 function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
   if (isLoading) {
     const widthClass = kind === "price" || kind === "eurYear" ? "w-16" : "w-12";
@@ -71,9 +93,17 @@ function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
   }
 }
 
-export function ResultCard({ address, citycode }: { address?: string; citycode?: string } = {}) {
+export function ResultCard({
+  address,
+  citycode,
+}: {
+  address?: string;
+  citycode?: string;
+} = {}) {
   const { data, isLoading, isError } = useCeremaPrix(citycode);
   const insee = useInseeCommune(citycode);
+  const georisques = useGeorisques(citycode);
+  const envEnabled = !!citycode;
 
   const immobilierMetrics: Metric[] = !citycode
     ? [
@@ -147,9 +177,46 @@ export function ResultCard({ address, citycode }: { address?: string; citycode?:
       scoreColorClass: "text-score-c",
       metrics: [
         { label: "Qualité de l'air (AQI)", value: "48 / 100" },
-        { label: "Risque inondation", value: "Aucun" },
-        { label: "Sols pollués", value: "Existant" },
-        { label: "Radon", value: "Faible" },
+        {
+          label: "Argile (RGA)",
+          value: envEnabled ? (
+            <EnvMetricValue
+              value={georisques.data?.argile}
+              isLoading={georisques.isLoading}
+              isError={georisques.isError}
+            />
+          ) : (
+            "Faible"
+          ),
+        },
+        {
+          label: "Sites pollués (commune)",
+          value: envEnabled ? (
+            <EnvMetricValue
+              value={
+                georisques.data?.sitesPolluesCount != null
+                  ? `${eurFmt.format(georisques.data.sitesPolluesCount)} sites`
+                  : undefined
+              }
+              isLoading={georisques.isLoading}
+              isError={georisques.isError}
+            />
+          ) : (
+            "—"
+          ),
+        },
+        {
+          label: "Radon",
+          value: envEnabled ? (
+            <EnvMetricValue
+              value={georisques.data?.radon}
+              isLoading={georisques.isLoading}
+              isError={georisques.isError}
+            />
+          ) : (
+            "Faible"
+          ),
+        },
       ],
       bar: { width: 48, color: "yellow" },
       insight:
