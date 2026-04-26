@@ -1,8 +1,7 @@
 "use client";
 
-import { useAddressAutocomplete } from "@/hooks/use-address-autocomplete";
-import { useGeocodeAddress } from "@/hooks/use-geocode-address";
-import type { AutocompleteResult } from "@/lib/geocoding/schemas";
+import { useAddressAutocomplete, useGeocodeAddress } from "@/lib/geoplateforme/use-geoplateforme";
+import type { AutocompleteResult } from "@/lib/geoplateforme/schemas";
 import { ArrowRight, Loader2, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type KeyboardEvent } from "react";

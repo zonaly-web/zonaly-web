@@ -1,5 +1,5 @@
+import { GeocodeQuerySchema, GeocodeUpstreamResponseSchema } from "@/lib/geoplateforme/schemas";
 import { NextRequest, NextResponse } from "next/server";
-import { GeocodeQuerySchema, GeocodeUpstreamResponseSchema } from "@/lib/geocoding/schemas";
 
 const UPSTREAM = "https://data.geopf.fr/geocodage/search";
 
