@@ -31,8 +31,9 @@ export function mapRgaMax(rga: z.infer<typeof RgaResponseSchema>): string {
 }
 
 export function countSitesPollues(ssp: z.infer<typeof SspResponseSchema>): number {
+  // CASIAS volontairement exclu : présomption historique non vérifiée (cf. README).
+  // On garde instructions + SIS + SUP = pollution qualifiée par l'État.
   return (
-    (ssp.casias?.totalElements ?? 0) +
     (ssp.instructions?.totalElements ?? 0) +
     (ssp.conclusionsSis?.totalElements ?? 0) +
     (ssp.conclusionsSup?.totalElements ?? 0)
