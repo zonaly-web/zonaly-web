@@ -8,7 +8,6 @@ async function fetchCeremaPrix(citycode: string): Promise<CeremaPrixApiResponse>
   if (!res.ok) throw new Error(`cerema_failed_${res.status}`);
   const json = await res.json();
   const validated = CeremaPrixApiResponseSchema.parse(json);
-  console.log("validated", validated);
   return validated;
 }
 
