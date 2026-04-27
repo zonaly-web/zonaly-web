@@ -17,14 +17,10 @@ export function pickLatestYear(rows: SsmsiUpstreamRow[]): number | null {
 export function computeMetrics(rows: SsmsiUpstreamRow[], year: number) {
   const yearRows = rows.filter((r) => r.annee === year);
 
-  console.log("yearRows", yearRows);
-
   const cambriolage = yearRows.find((r) => r.indicateur === CAMBRIOLAGE_INDICATEUR);
-  console.log("cambriolage", cambriolage);
   const cambriolagesPer1000Logements = cambriolage?.taux_pour_mille ?? null;
 
   const agressionRows = yearRows.filter((r) => AGRESSION_INDICATEURS.has(r.indicateur));
-  console.log("agressionRows", agressionRows);
   const agressionsPer1000Habitants =
     agressionRows.length === 0
       ? null
