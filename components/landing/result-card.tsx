@@ -3,6 +3,7 @@
 import { useCeremaPrix } from "@/lib/cerema/use-cerema";
 import { useGeorisques } from "@/lib/georisques/use-georisque";
 import { useInseeCommune } from "@/lib/insee/use-insee";
+import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
@@ -25,7 +26,7 @@ type Dimension = {
 };
 
 type MetricValueProps = {
-  kind: "price" | "evolution" | "percent" | "eurYear";
+  kind: "price" | "evolution" | "percent" | "eurYear" | "permille";
   value: number | null | undefined;
   isLoading: boolean;
   isError: boolean;
@@ -46,6 +47,10 @@ const pctFmt = new Intl.NumberFormat("fr-FR", {
   signDisplay: "exceptZero",
 });
 const shareFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
+const permilleFmt = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 function EnvMetricValue({
   value,
@@ -90,6 +95,8 @@ function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
       return <span>{`${shareFmt.format(value)} %`}</span>;
     case "eurYear":
       return <span>{`${eurFmt.format(value)} €/an`}</span>;
+    case "permille":
+      return <span>{permilleFmt.format(value)}</span>;
   }
 }
 
@@ -103,6 +110,7 @@ export function ResultCard({
   const { data, isLoading, isError } = useCeremaPrix(citycode);
   const insee = useInseeCommune(citycode);
   const georisques = useGeorisques(citycode);
+  const ssmsi = useSsmsi(citycode);
   const envEnabled = !!citycode;
 
   const immobilierMetrics: Metric[] = !citycode
@@ -157,6 +165,40 @@ export function ResultCard({
             />
           ),
         },
+      ];
+
+  const securiteMetrics: Metric[] = !citycode
+    ? [
+        { label: "Cambriolages / 1 000 log.", value: "8,2" },
+        { label: "Agressions / 1 000 hab.", value: "3,1" },
+        { label: "Quartier prioritaire", value: "Non" },
+        { label: "Zone sécurité prioritaire", value: "Non" },
+      ]
+    : [
+        {
+          label: "Cambriolages / 1 000 log.",
+          value: (
+            <MetricValue
+              kind="permille"
+              value={ssmsi.data?.cambriolagesPer1000Logements}
+              isLoading={ssmsi.isLoading}
+              isError={ssmsi.isError}
+            />
+          ),
+        },
+        {
+          label: "Agressions / 1 000 hab.",
+          value: (
+            <MetricValue
+              kind="permille"
+              value={ssmsi.data?.agressionsPer1000Habitants}
+              isLoading={ssmsi.isLoading}
+              isError={ssmsi.isError}
+            />
+          ),
+        },
+        { label: "Quartier prioritaire", value: "Non" },
+        { label: "Zone sécurité prioritaire", value: "Non" },
       ];
 
   const dimensions: Dimension[] = [
@@ -227,12 +269,7 @@ export function ResultCard({
       dotColor: "var(--score-b)",
       score: "B",
       scoreColorClass: "text-score-b",
-      metrics: [
-        { label: "Cambriolages / 1 000 hab.", value: "8,2" },
-        { label: "Agressions / 1 000 hab.", value: "3,1" },
-        { label: "Quartier prioritaire", value: "Non" },
-        { label: "Zone sécurité prioritaire", value: "Non" },
-      ],
+      metrics: securiteMetrics,
       bar: { width: 72, color: "yellow-green" },
       insight:
         "Top 38% des communes françaises. Taux dans la moyenne pour une grande ville touristique.",
