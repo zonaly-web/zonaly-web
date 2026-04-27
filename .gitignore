@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# notes internes (révèlent l'implémentation)
+lib/georisques/README.md
+lib/insee/README.md
+lib/cerema/README.md
+lib/geoplateforme/README.md
