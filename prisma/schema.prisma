@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Qpv {
+  id         Int    @id @default(autoincrement())
+  fid        Int
+  code_qp    String @unique
+  lib_qp     String
+  insee_reg  String?
+  lib_reg    String
+  insee_dep  String
+  lib_dep    String
+  insee_com  String
+  lib_com    String
+  siren_epci String
+  geometry   Unsupported("geometry(MULTIPOLYGON, 4326)")
+
+  @@index([geometry], type: Gist)
+  @@index([insee_com])
+  @@index([insee_dep])
+}
