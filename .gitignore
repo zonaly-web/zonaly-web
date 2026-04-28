@@ -48,7 +48,7 @@ lib/geoplateforme/README.md
 lib/ssmsi/README.md
 
 # generated
-/lib/generated/
+/lib/prisma/generated/
 
 # data
 scripts/data/

@@ -3,6 +3,8 @@
 import { useCeremaPrix } from "@/lib/cerema/use-cerema";
 import { useGeorisques } from "@/lib/georisques/use-georisque";
 import { useInseeCommune } from "@/lib/insee/use-insee";
+import { useQpv } from "@/lib/qpv/use-qpv";
+import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
@@ -26,7 +28,7 @@ type Dimension = {
 };
 
 type MetricValueProps = {
-  kind: "price" | "evolution" | "percent" | "eurYear" | "permille";
+  kind: "price" | "evolution" | "percent" | "eurYear" | "permille" | "qpvCount" | "other";
   value: number | null | undefined;
   isLoading: boolean;
   isError: boolean;
@@ -97,6 +99,8 @@ function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
       return <span>{`${eurFmt.format(value)} €/an`}</span>;
     case "permille":
       return <span>{permilleFmt.format(value)}</span>;
+    default:
+      return <span>{`${value}`}</span>;
   }
 }
 
@@ -111,6 +115,8 @@ export function ResultCard({
   const insee = useInseeCommune(citycode);
   const georisques = useGeorisques(citycode);
   const ssmsi = useSsmsi(citycode);
+  const qpv = useQpv(citycode);
+  const qrr = useQrr(citycode);
   const envEnabled = !!citycode;
 
   const immobilierMetrics: Metric[] = !citycode
@@ -171,8 +177,8 @@ export function ResultCard({
     ? [
         { label: "Cambriolages / 1 000 log.", value: "8,2" },
         { label: "Agressions / 1 000 hab.", value: "3,1" },
-        { label: "Quartier prioritaire", value: "Non" },
-        { label: "Zone sécurité prioritaire", value: "Non" },
+        { label: "Quartier prioritaire", value: "2" },
+        { label: "Zone sécurité prioritaire", value: "1" },
       ]
     : [
         {
@@ -197,8 +203,31 @@ export function ResultCard({
             />
           ),
         },
-        { label: "Quartier prioritaire", value: "Non" },
-        { label: "Zone sécurité prioritaire", value: "Non" },
+        {
+          label: qpv.data && qpv.data.count > 1 ? "Quartiers prioritaires" : "Quartier prioritaire",
+          value: (
+            <MetricValue
+              kind="other"
+              value={qpv.data?.count}
+              isLoading={qpv.isLoading}
+              isError={qpv.isError}
+            />
+          ),
+        },
+        {
+          label:
+            qrr.data && qrr.data.count > 1
+              ? "Zones sécurité prioritaires"
+              : "Zone sécurité prioritaire",
+          value: (
+            <MetricValue
+              kind="other"
+              value={qrr.data?.count}
+              isLoading={qrr.isLoading}
+              isError={qrr.isError}
+            />
+          ),
+        },
       ];
 
   const dimensions: Dimension[] = [
