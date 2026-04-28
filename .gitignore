@@ -46,3 +46,9 @@ lib/insee/README.md
 lib/cerema/README.md
 lib/geoplateforme/README.md
 lib/ssmsi/README.md
+
+# generated
+/lib/generated/
+
+# data
+scripts/data/
