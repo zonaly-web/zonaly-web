@@ -4,6 +4,7 @@ import { useCeremaPrix } from "@/lib/cerema/use-cerema";
 import { useGeorisques } from "@/lib/georisques/use-georisque";
 import { useInseeCommune } from "@/lib/insee/use-insee";
 import { useQpv } from "@/lib/qpv/use-qpv";
+import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
@@ -115,6 +116,7 @@ export function ResultCard({
   const georisques = useGeorisques(citycode);
   const ssmsi = useSsmsi(citycode);
   const qpv = useQpv(citycode);
+  const qrr = useQrr(citycode);
   const envEnabled = !!citycode;
 
   const immobilierMetrics: Metric[] = !citycode
@@ -176,7 +178,7 @@ export function ResultCard({
         { label: "Cambriolages / 1 000 log.", value: "8,2" },
         { label: "Agressions / 1 000 hab.", value: "3,1" },
         { label: "Quartier prioritaire", value: "2" },
-        { label: "Zone sécurité prioritaire", value: "Non" },
+        { label: "Zone sécurité prioritaire", value: "1" },
       ]
     : [
         {
@@ -212,7 +214,20 @@ export function ResultCard({
             />
           ),
         },
-        { label: "Zone sécurité prioritaire", value: "Non" },
+        {
+          label:
+            qrr.data && qrr.data.count > 1
+              ? "Zones sécurité prioritaires"
+              : "Zone sécurité prioritaire",
+          value: (
+            <MetricValue
+              kind="other"
+              value={qrr.data?.count}
+              isLoading={qrr.isLoading}
+              isError={qrr.isError}
+            />
+          ),
+        },
       ];
 
   const dimensions: Dimension[] = [

@@ -5,7 +5,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../lib/generated/prisma"
+  output   = "../lib/prisma//generated"
 }
 
 datasource db {
@@ -29,4 +29,17 @@ model Qpv {
   @@index([geometry], type: Gist)
   @@index([insee_com])
   @@index([insee_dep])
+}
+
+model Qrr {
+  id         Int    @id @default(autoincrement())
+  nom      String
+  dep      String
+  service  String
+  vague    Float
+  code_qrr String @unique
+  geometry Unsupported("geometry(MULTIPOLYGON, 4326)")
+
+  @@index([geometry], type: Gist)
+  @@index([dep])
 }

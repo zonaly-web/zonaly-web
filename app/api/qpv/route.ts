@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db/prisma";
+import { prisma } from "@/lib/prisma/prisma";
 import { QpvQuerySchema } from "@/lib/qpv/schemas";
 import { normalizeCitycode } from "@/lib/qpv/utils";
 import { NextRequest, NextResponse } from "next/server";
