@@ -7,6 +7,7 @@ import { useQpv } from "@/lib/qpv/use-qpv";
 import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
 import { useOverpass } from "@/lib/overpass/use-overpass";
+import { useSitadel } from "@/lib/sitadel/use-sitadel";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
@@ -119,119 +120,11 @@ export function ResultCard({
   const qpv = useQpv(citycode);
   const qrr = useQrr(citycode);
   const overpass = useOverpass(citycode);
+  const sitadel = useSitadel(citycode);
+  const imobEnabled = !!citycode;
   const envEnabled = !!citycode;
+  const secEnabled = !!citycode;
   const lifeEnabled = !!citycode;
-
-  const immobilierMetrics: Metric[] = !citycode
-    ? [
-        { label: "Prix médian au m²", value: "9 800 €" },
-        { label: "Évolution 10 ans", value: "+47%" },
-        { label: "Part locataires", value: "73%" },
-        { label: "Revenu médian", value: "38 400 €/an" },
-      ]
-    : [
-        {
-          label: "Prix médian au m²",
-          value: (
-            <MetricValue
-              kind="price"
-              value={data?.prixMedianM2}
-              isLoading={isLoading}
-              isError={isError}
-            />
-          ),
-        },
-        {
-          label: "Évolution 5 ans",
-          value: (
-            <MetricValue
-              kind="evolution"
-              value={data?.evolution5Y}
-              isLoading={isLoading}
-              isError={isError}
-            />
-          ),
-        },
-        {
-          label: "Part locataires",
-          value: (
-            <MetricValue
-              kind="percent"
-              value={insee.data?.partLocataires}
-              isLoading={insee.isLoading}
-              isError={insee.isError}
-            />
-          ),
-        },
-        {
-          label: "Revenu médian",
-          value: (
-            <MetricValue
-              kind="eurYear"
-              value={insee.data?.revenuMedianEurYr}
-              isLoading={insee.isLoading}
-              isError={insee.isError}
-            />
-          ),
-        },
-      ];
-
-  const securiteMetrics: Metric[] = !citycode
-    ? [
-        { label: "Cambriolages / 1 000 log.", value: "8,2" },
-        { label: "Agressions / 1 000 hab.", value: "3,1" },
-        { label: "Quartier prioritaire", value: "2" },
-        { label: "Zone sécurité prioritaire", value: "1" },
-      ]
-    : [
-        {
-          label: "Cambriolages / 1 000 log.",
-          value: (
-            <MetricValue
-              kind="permille"
-              value={ssmsi.data?.cambriolagesPer1000Logements}
-              isLoading={ssmsi.isLoading}
-              isError={ssmsi.isError}
-            />
-          ),
-        },
-        {
-          label: "Agressions / 1 000 hab.",
-          value: (
-            <MetricValue
-              kind="permille"
-              value={ssmsi.data?.agressionsPer1000Habitants}
-              isLoading={ssmsi.isLoading}
-              isError={ssmsi.isError}
-            />
-          ),
-        },
-        {
-          label: qpv.data && qpv.data.count > 1 ? "Quartiers prioritaires" : "Quartier prioritaire",
-          value: (
-            <MetricValue
-              kind="other"
-              value={qpv.data?.count}
-              isLoading={qpv.isLoading}
-              isError={qpv.isError}
-            />
-          ),
-        },
-        {
-          label:
-            qrr.data && qrr.data.count > 1
-              ? "Zones sécurité prioritaires"
-              : "Zone sécurité prioritaire",
-          value: (
-            <MetricValue
-              kind="other"
-              value={qrr.data?.count}
-              isLoading={qrr.isLoading}
-              isError={qrr.isError}
-            />
-          ),
-        },
-      ];
 
   const dimensions: Dimension[] = [
     {
@@ -239,7 +132,60 @@ export function ResultCard({
       dotColor: "var(--primary)",
       score: "A",
       scoreColorClass: "text-score-a",
-      metrics: immobilierMetrics,
+      metrics: [
+        {
+          label: "Prix médian au m²",
+          value: imobEnabled ? (
+            <MetricValue
+              kind="price"
+              value={data?.prixMedianM2}
+              isLoading={isLoading}
+              isError={isError}
+            />
+          ) : (
+            "9 800 €"
+          ),
+        },
+        {
+          label: "Évolution 5 ans",
+          value: imobEnabled ? (
+            <MetricValue
+              kind="evolution"
+              value={data?.evolution5Y}
+              isLoading={isLoading}
+              isError={isError}
+            />
+          ) : (
+            "+47%"
+          ),
+        },
+        {
+          label: "Part locataires",
+          value: imobEnabled ? (
+            <MetricValue
+              kind="percent"
+              value={insee.data?.partLocataires}
+              isLoading={insee.isLoading}
+              isError={insee.isError}
+            />
+          ) : (
+            "73%"
+          ),
+        },
+        {
+          label: "Revenu médian",
+          value: imobEnabled ? (
+            <MetricValue
+              kind="eurYear"
+              value={insee.data?.revenuMedianEurYr}
+              isLoading={insee.isLoading}
+              isError={insee.isError}
+            />
+          ) : (
+            "38 400 €/an"
+          ),
+        },
+      ],
       bar: { width: 92, color: "green" },
       insight:
         "Top 8% national. Marché très tendu, forte demande locative. Rendement brut estimé : 2,8–3,4%.",
@@ -301,7 +247,63 @@ export function ResultCard({
       dotColor: "var(--score-b)",
       score: "B",
       scoreColorClass: "text-score-b",
-      metrics: securiteMetrics,
+      metrics: [
+        {
+          label: "Cambriolages / 1 000 log.",
+          value: secEnabled ? (
+            <MetricValue
+              kind="permille"
+              value={ssmsi.data?.cambriolagesPer1000Logements}
+              isLoading={ssmsi.isLoading}
+              isError={ssmsi.isError}
+            />
+          ) : (
+            "8,2"
+          ),
+        },
+        {
+          label: "Agressions / 1 000 hab.",
+          value: secEnabled ? (
+            <MetricValue
+              kind="permille"
+              value={ssmsi.data?.agressionsPer1000Habitants}
+              isLoading={ssmsi.isLoading}
+              isError={ssmsi.isError}
+            />
+          ) : (
+            "3,1"
+          ),
+        },
+        {
+          label: qpv.data && qpv.data.count > 1 ? "Quartiers prioritaires" : "Quartier prioritaire",
+          value: secEnabled ? (
+            <MetricValue
+              kind="other"
+              value={qpv.data?.count}
+              isLoading={qpv.isLoading}
+              isError={qpv.isError}
+            />
+          ) : (
+            "2"
+          ),
+        },
+        {
+          label:
+            qrr.data && qrr.data.count > 1
+              ? "Zones sécurité prioritaires"
+              : "Zone sécurité prioritaire",
+          value: secEnabled ? (
+            <MetricValue
+              kind="other"
+              value={qrr.data?.count}
+              isLoading={qrr.isLoading}
+              isError={qrr.isError}
+            />
+          ) : (
+            "1"
+          ),
+        },
+      ],
       bar: { width: 72, color: "yellow-green" },
       insight:
         "Top 38% des communes françaises. Taux dans la moyenne pour une grande ville touristique.",
@@ -359,7 +361,22 @@ export function ResultCard({
             "32"
           ),
         },
-        { label: "Permis récents", value: "32 actifs" },
+        {
+          label: "Permis récents",
+          value: lifeEnabled ? (
+            <EnvMetricValue
+              value={
+                sitadel.data?.logementsAutorises != null
+                  ? `${eurFmt.format(sitadel.data.permitsCount)} permis · ${eurFmt.format(sitadel.data.logementsAutorises)} logements`
+                  : undefined
+              }
+              isLoading={sitadel.isLoading}
+              isError={sitadel.isError}
+            />
+          ) : (
+            "12 permis · 250 logements"
+          ),
+        },
       ],
       bar: { width: 95, color: "green" },
       insight:
