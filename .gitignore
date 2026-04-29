@@ -46,6 +46,9 @@ lib/insee/README.md
 lib/cerema/README.md
 lib/geoplateforme/README.md
 lib/ssmsi/README.md
+lib/sitadel/README.md
+lib/qrr/README.md
+lib/qpv/README.md
 
 # generated
 /lib/prisma/generated/
