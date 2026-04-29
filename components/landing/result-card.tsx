@@ -6,6 +6,7 @@ import { useInseeCommune } from "@/lib/insee/use-insee";
 import { useQpv } from "@/lib/qpv/use-qpv";
 import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
+import { useOverpass } from "@/lib/overpass/use-overpass";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
@@ -117,7 +118,9 @@ export function ResultCard({
   const ssmsi = useSsmsi(citycode);
   const qpv = useQpv(citycode);
   const qrr = useQrr(citycode);
+  const overpass = useOverpass(citycode);
   const envEnabled = !!citycode;
+  const lifeEnabled = !!citycode;
 
   const immobilierMetrics: Metric[] = !citycode
     ? [
@@ -310,12 +313,52 @@ export function ResultCard({
       scoreColorClass: "text-score-a",
       metrics: [
         {
-          label: "Transports à 500 m",
-          value: "12 arrêts",
+          label: "Transports",
+          value: lifeEnabled ? (
+            <EnvMetricValue
+              value={
+                overpass.data?.transports != null
+                  ? `${eurFmt.format(overpass.data.transports)} arrêts`
+                  : undefined
+              }
+              isLoading={overpass.isLoading}
+              isError={overpass.isError}
+            />
+          ) : (
+            "12 arrêts"
+          ),
           valueClass: "text-score-a",
         },
-        { label: "Commerces à 500 m", value: "34" },
-        { label: "Écoles à 2 km", value: "32" },
+        {
+          label: "Commerces",
+          value: lifeEnabled ? (
+            <EnvMetricValue
+              value={
+                overpass.data?.commerces != null
+                  ? eurFmt.format(overpass.data.commerces)
+                  : undefined
+              }
+              isLoading={overpass.isLoading}
+              isError={overpass.isError}
+            />
+          ) : (
+            "34"
+          ),
+        },
+        {
+          label: "Écoles",
+          value: lifeEnabled ? (
+            <EnvMetricValue
+              value={
+                overpass.data?.ecoles != null ? eurFmt.format(overpass.data.ecoles) : undefined
+              }
+              isLoading={overpass.isLoading}
+              isError={overpass.isError}
+            />
+          ) : (
+            "32"
+          ),
+        },
         { label: "Permis récents", value: "32 actifs" },
       ],
       bar: { width: 95, color: "green" },
