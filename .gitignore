@@ -49,6 +49,7 @@ lib/ssmsi/README.md
 lib/sitadel/README.md
 lib/qrr/README.md
 lib/qpv/README.md
+lib/overpass/README.md
 
 # generated
 /lib/prisma/generated/

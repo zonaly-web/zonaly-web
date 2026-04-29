@@ -1,25 +1,25 @@
+import { OverpassQuerySchema, OverpassResponseSchema } from "@/lib/overpass/schemas";
+import { countUniqueLines } from "@/lib/overpass/utils";
 import { NextRequest, NextResponse } from "next/server";
-import { OverpassQuerySchema, OverpassRawResponseSchema } from "@/lib/overpass/schemas";
-import { readCount } from "@/lib/overpass/utils";
 
 const OVERPASS_ENDPOINT = "https://overpass-api.de/api/interpreter";
 
 function buildQuery(citycode: string): string {
-  return `[out:json][timeout:60];
-area["ref:INSEE"="${citycode}"]["admin_level"="8"]->.a;
+  return `[out:json][timeout:120];
+area["ref:INSEE"="${citycode}"]["admin_level"~"^(8|9)$"]->.a;
 (
-  node(area.a)[public_transport=stop_position];
   node(area.a)[highway=bus_stop];
   node(area.a)[railway~"^(station|tram_stop|halt|subway_entrance)$"];
-);
-out count;
+)->.stops;
+rel(bn.stops)[type=route][route~"^(bus|subway|tram|train|light_rail|trolleybus)$"];
+out tags;
 (
   nwr(area.a)[shop];
   node(area.a)[amenity=marketplace];
 );
 out count;
 (
-  nwr(area.a)[amenity~"^(school|kindergarten|college|university)$"];
+  nwr(area.a)[amenity=school];
 );
 out count;`;
 }
@@ -33,7 +33,6 @@ export async function GET(req: NextRequest) {
   }
 
   const { citycode } = parsed.data;
-  const body = `data=${encodeURIComponent(buildQuery(citycode))}`;
 
   try {
     const res = await fetch(OVERPASS_ENDPOINT, {
@@ -43,27 +42,19 @@ export async function GET(req: NextRequest) {
         "User-Agent": "Zonaly/1.0 (+https://zonaly.fr)",
         Accept: "application/json",
       },
-      body,
+      body: `data=${encodeURIComponent(buildQuery(citycode))}`,
       next: { revalidate: 60 * 60 * 24 * 7 },
     });
     if (!res.ok) {
       return NextResponse.json({ error: "upstream_error" }, { status: 502 });
     }
-    const json = await res.json();
-    const raw = OverpassRawResponseSchema.parse(json);
 
-    const counts = raw.elements.filter(
-      (el) =>
-        el !== null &&
-        typeof el === "object" &&
-        "type" in el &&
-        (el as { type: unknown }).type === "count",
-    );
+    const { relations, commerces, ecoles } = OverpassResponseSchema.parse(await res.json());
 
     return NextResponse.json({
-      transports: readCount(counts[0]),
-      commerces: readCount(counts[1]),
-      ecoles: readCount(counts[2]),
+      transports: countUniqueLines(relations),
+      commerces: Number(commerces?.tags.total ?? 0),
+      ecoles: Number(ecoles?.tags.total ?? 0),
     });
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });
