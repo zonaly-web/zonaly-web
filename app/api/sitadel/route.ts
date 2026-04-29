@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  SitadelPermitsResponseSchema,
-  SitadelQuerySchema,
-} from "@/lib/sitadel/schemas";
+import { SitadelPermitsResponseSchema, SitadelQuerySchema } from "@/lib/sitadel/schemas";
 import { aggregatePermits, armCitycodeToPostalCode, isoDateNMonthsAgo } from "@/lib/sitadel/utils";
 
 const TABULAR_BASE = "https://tabular-api.data.gouv.fr/api/resources";
