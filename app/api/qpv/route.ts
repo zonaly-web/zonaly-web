@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma/prisma";
 import { QpvQuerySchema } from "@/lib/qpv/schemas";
-import { normalizeCitycode } from "@/lib/qpv/utils";
+import { toMasterCommune } from "@/lib/atmo/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "invalid_query" }, { status: 400 });
   }
 
-  const citycode = normalizeCitycode(parsed.data.citycode);
+  const citycode = toMasterCommune(parsed.data.citycode);
 
   try {
     const count = await prisma.qpv.count({

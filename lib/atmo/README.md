@@ -18,28 +18,28 @@ Le dataset publie aussi un CSV de 17 Mo et une couche WFS. La tabular-api est la
 
 ## Schéma des colonnes utiles
 
-| Colonne     | Type    | Description                                                                |
-| ----------- | ------- | -------------------------------------------------------------------------- |
-| `code_zone` | string  | Code INSEE commune (5 chiffres) **OU** code SIREN EPCI (9 chiffres) — voir piège #1 |
-| `lib_zone`  | string  | Nom de la zone ("Paris 1er Arrondissement", "CC du Pays Fouesnantais"…)    |
-| `type_zone` | string  | `"commune"` ou `"EPCI"`                                                    |
-| `code_qual` | int 1–6 | Indice ATMO global                                                         |
-| `lib_qual`  | string  | "Bon" / "Moyen" / "Dégradé" / "Mauvais" / "Très mauvais" / "Extrêmement mauvais" |
-| `coul_qual` | string  | Code couleur hex officiel (ex: `#50CCAA` pour "Moyen")                      |
-| `date_ech`  | date    | Date de l'échéance (J, J+1 souvent J+2 — prévisions)                       |
-| `code_no2`, `code_o3`, `code_pm10`, `code_pm25`, `code_so2` | int 0–3 | Sous-indices polluants (échelle 0–3, pas 1–6) |
-| `source`    | string  | AASQA productrice ("Airparif", "Atmo Sud", "Air Breizh"…)                  |
+| Colonne                                                     | Type    | Description                                                                         |
+| ----------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
+| `code_zone`                                                 | string  | Code INSEE commune (5 chiffres) **OU** code SIREN EPCI (9 chiffres) — voir piège #1 |
+| `lib_zone`                                                  | string  | Nom de la zone ("Paris 1er Arrondissement", "CC du Pays Fouesnantais"…)             |
+| `type_zone`                                                 | string  | `"commune"` ou `"EPCI"`                                                             |
+| `code_qual`                                                 | int 1–6 | Indice ATMO global                                                                  |
+| `lib_qual`                                                  | string  | "Bon" / "Moyen" / "Dégradé" / "Mauvais" / "Très mauvais" / "Extrêmement mauvais"    |
+| `coul_qual`                                                 | string  | Code couleur hex officiel (ex: `#50CCAA` pour "Moyen")                              |
+| `date_ech`                                                  | date    | Date de l'échéance (J, J+1 souvent J+2 — prévisions)                                |
+| `code_no2`, `code_o3`, `code_pm10`, `code_pm25`, `code_so2` | int 0–3 | Sous-indices polluants (échelle 0–3, pas 1–6)                                       |
+| `source`                                                    | string  | AASQA productrice ("Airparif", "Atmo Sud", "Air Breizh"…)                           |
 
 ## Échelle ATMO (rappel officiel)
 
-| code_qual | lib_qual              | coul_qual |
-| --------- | --------------------- | --------- |
-| 1         | Bon                   | `#50F0E6` |
-| 2         | Moyen                 | `#50CCAA` |
-| 3         | Dégradé               | `#F0E641` |
-| 4         | Mauvais               | `#FF5050` |
-| 5         | Très mauvais          | `#960032` |
-| 6         | Extrêmement mauvais   | `#7D2181` |
+| code_qual | lib_qual            | coul_qual |
+| --------- | ------------------- | --------- |
+| 1         | Bon                 | `#50F0E6` |
+| 2         | Moyen               | `#50CCAA` |
+| 3         | Dégradé             | `#F0E641` |
+| 4         | Mauvais             | `#FF5050` |
+| 5         | Très mauvais        | `#960032` |
+| 6         | Extrêmement mauvais | `#7D2181` |
 
 ## ⚠️ Piège #1 : granularité hétérogène selon l'AASQA
 
@@ -58,15 +58,15 @@ Si la requête commune renvoie 0 ligne et que le département est dans { 22, 29,
 
 ## ⚠️ Piège #2 : couverture DOM-TOM partielle
 
-| Territoire             | Couvert ? |
-| ---------------------- | --------- |
-| Métropole + Corse      | ✅        |
-| Guadeloupe (971xx)     | ✅ (Gwad'Air) |
-| Martinique (972xx)     | ✅ (Madininair) |
-| Guyane (973xx)         | ✅ (Atmo Guyane) |
-| **Réunion** (974xx)    | ❌ 0 ligne |
-| **Mayotte** (976xx)    | ❌ 0 ligne |
-| Saint-Pierre-et-Miquelon, Saint-Barthélemy, Saint-Martin, Polynésie, Nouvelle-Calédonie, Wallis-et-Futuna, TAAF | ❌ |
+| Territoire                                                                                                      | Couvert ?        |
+| --------------------------------------------------------------------------------------------------------------- | ---------------- |
+| Métropole + Corse                                                                                               | ✅               |
+| Guadeloupe (971xx)                                                                                              | ✅ (Gwad'Air)    |
+| Martinique (972xx)                                                                                              | ✅ (Madininair)  |
+| Guyane (973xx)                                                                                                  | ✅ (Atmo Guyane) |
+| **Réunion** (974xx)                                                                                             | ❌ 0 ligne       |
+| **Mayotte** (976xx)                                                                                             | ❌ 0 ligne       |
+| Saint-Pierre-et-Miquelon, Saint-Barthélemy, Saint-Martin, Polynésie, Nouvelle-Calédonie, Wallis-et-Futuna, TAAF | ❌               |
 
 La page data.gouv mentionne explicitement l'exclusion de Réunion + Nouvelle-Calédonie, mais en pratique Mayotte et le reste des COM lointains ne sont pas couverts non plus.
 
