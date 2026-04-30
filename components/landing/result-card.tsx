@@ -8,6 +8,7 @@ import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
 import { useOverpass } from "@/lib/overpass/use-overpass";
 import { useSitadel } from "@/lib/sitadel/use-sitadel";
+import { useAtmo } from "@/lib/atmo/use-atmo";
 import { motion } from "motion/react";
 import type { ReactNode } from "react";
 
@@ -77,6 +78,40 @@ function EnvMetricValue({
   return <span>{value}</span>;
 }
 
+function AtmoMetricValue({
+  libQual,
+  coulQual,
+  isLoading,
+  isError,
+}: {
+  libQual: string | null | undefined;
+  coulQual: string | null | undefined;
+  isLoading: boolean;
+  isError: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <span
+        aria-hidden
+        className="inline-block h-4 w-14 animate-pulse rounded bg-white/10 align-middle"
+      />
+    );
+  }
+  if (isError || !libQual) return <span>—</span>;
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      {coulQual ? (
+        <span
+          aria-hidden
+          className="inline-block size-2 rounded-full"
+          style={{ background: coulQual }}
+        />
+      ) : null}
+      <span>{libQual}</span>
+    </span>
+  );
+}
+
 function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
   if (isLoading) {
     const widthClass = kind === "price" || kind === "eurYear" ? "w-16" : "w-12";
@@ -121,6 +156,7 @@ export function ResultCard({
   const qrr = useQrr(citycode);
   const overpass = useOverpass(citycode);
   const sitadel = useSitadel(citycode);
+  const atmo = useAtmo(citycode);
   const imobEnabled = !!citycode;
   const envEnabled = !!citycode;
   const secEnabled = !!citycode;
@@ -196,7 +232,19 @@ export function ResultCard({
       score: "C",
       scoreColorClass: "text-score-c",
       metrics: [
-        { label: "Qualité de l'air (AQI)", value: "48 / 100" },
+        {
+          label: "Qualité de l'air",
+          value: envEnabled ? (
+            <AtmoMetricValue
+              libQual={atmo.data?.libQual}
+              coulQual={atmo.data?.coulQual}
+              isLoading={atmo.isLoading}
+              isError={atmo.isError}
+            />
+          ) : (
+            "Moyen"
+          ),
+        },
         {
           label: "Argile (RGA)",
           value: envEnabled ? (

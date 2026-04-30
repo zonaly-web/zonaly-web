@@ -1,6 +1,6 @@
 # Overpass / OpenStreetMap
 
-Source des métriques **transports**, **commerces**, **écoles** de la dimension *Vie de quartier*.
+Source des métriques **transports**, **commerces**, **écoles** de la dimension _Vie de quartier_.
 
 > ⚠️ **Notes internes — non commitées (cf. `.gitignore`).** Documente l'implémentation et les **pièges** rencontrés, à relire avant toute évolution.
 
@@ -62,6 +62,7 @@ Côté TypeScript via `Set`, clé = `${route}:${ref ?? name ?? id}` (cf. `utils.
 
 ⚠️ **Bus stops doublement taggués mais sur des nodes distincts.**
 Un même arrêt est mappé sur 2 nodes :
+
 - 1 sur la chaussée → `public_transport=stop_position`
 - 1 sur le trottoir → `highway=bus_stop`
 
@@ -93,6 +94,7 @@ out count;
 ### Pas inclus
 
 Choix produit assumé :
+
 - ❌ Restaurants / cafés / bars / fast-food (`amenity=restaurant|cafe|pub|bar|fast_food`)
 - ❌ Pharmacies (`amenity=pharmacy`)
 - ❌ Banques (`amenity=bank`)
@@ -102,6 +104,7 @@ Choix produit assumé :
 ### Pièges connus
 
 ⚠️ **Faux positifs marginaux** (à 1-2 occurrences chacun) :
+
 - `shop=outpost` → Amazon Locker, points relais
 - `shop=storage_rental` → self-storage
 - `shop=funeral_directors` → pompes funèbres
@@ -109,7 +112,7 @@ Choix produit assumé :
 Pour 100+ commerces dans une ville, c'est du bruit < 2% — pas un sujet.
 
 ⚠️ **Doublons de mapping OSM.**
-Cas réel à Kremlin-Bicêtre : *École Jeanne d'Arc* mappée 2 fois — 1 fois en `node` (point central), 1 fois en `way` (contour bâtiment). Idem pour *GiFi* et *Galerie Bicêtre* qui apparaissent en double avec 2 catégories différentes. **Aucun moyen de filtrer côté requête** — ce sont 2 entités distinctes au sens OSM. Marge d'erreur ~1-2% sur le compte.
+Cas réel à Kremlin-Bicêtre : _École Jeanne d'Arc_ mappée 2 fois — 1 fois en `node` (point central), 1 fois en `way` (contour bâtiment). Idem pour _GiFi_ et _Galerie Bicêtre_ qui apparaissent en double avec 2 catégories différentes. **Aucun moyen de filtrer côté requête** — ce sont 2 entités distinctes au sens OSM. Marge d'erreur ~1-2% sur le compte.
 
 ⚠️ **Pas de dédoublonnage géographique.** Si tu voulais le faire, il faudrait du clustering par proximité (< 30-50 m) côté code après fetch des coordonnées. Coûteux. Non implémenté.
 
@@ -132,6 +135,7 @@ Capte **uniquement `amenity=school`** — qui en France couvre maternelle → ly
 ### Pas inclus
 
 Choix produit (vise « écoles scolaires », exclut petite enfance + supérieur) :
+
 - ❌ `amenity=kindergarten` → crèches, multi-accueils (mappées comme petite enfance en France, pas comme école)
 - ❌ `amenity=college` → en OSM = post-bac (BTS, DUT, écoles d'ingé). **Ne pas confondre avec collège français** qui est `amenity=school + school:FR=collège`.
 - ❌ `amenity=university` → fac, IUT
@@ -172,7 +176,9 @@ La requête mixe 1 `out tags` + 2 `out count` → réponse hétérogène :
 ### Cache Next.js
 
 ```ts
-next: { revalidate: 60 * 60 * 24 * 7 }   // 7 jours
+next: {
+  revalidate: 60 * 60 * 24 * 7;
+} // 7 jours
 ```
 
 OSM bouge lentement, le cache long est tenable. Une commune populaire est servie depuis le cache 99% du temps.
@@ -202,15 +208,15 @@ Aucune mitigation nécessaire pour l'instant grâce au cache 7 jours.
 
 ## Décisions produit verrouillées
 
-| Sujet | Décision |
-|---|---|
-| Granularité | Commune INSEE (pas rayon métrique). Wording front-end nettoyé : « à 500 m » / « à 2 km » retiré. |
-| Score / barre / insight de la card | Restent **en dur** (cohérent avec les autres dimensions à ce stade). |
-| Permis récents (4e métrique de la card) | Reste **en fake data** (pas de source OSM, à brancher sur Sitadel ou équivalent). |
-| Métrique transports | **Lignes** (pas arrêts). 13 = parlable, exploitable à l'oral. |
-| Modes transports | bus + subway + tram + train + light_rail + trolleybus. Hors : ferry / funiculaire / téléphérique. |
-| Définition « commerces » | Retail OSM strict (`shop=*` + `marketplace`). Hors : restaurants, pharmacies, banques. |
-| Définition « écoles » | `amenity=school` uniquement (maternelle → lycée). Hors : crèches, post-bac, fac. |
+| Sujet                                   | Décision                                                                                          |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Granularité                             | Commune INSEE (pas rayon métrique). Wording front-end nettoyé : « à 500 m » / « à 2 km » retiré.  |
+| Score / barre / insight de la card      | Restent **en dur** (cohérent avec les autres dimensions à ce stade).                              |
+| Permis récents (4e métrique de la card) | Reste **en fake data** (pas de source OSM, à brancher sur Sitadel ou équivalent).                 |
+| Métrique transports                     | **Lignes** (pas arrêts). 13 = parlable, exploitable à l'oral.                                     |
+| Modes transports                        | bus + subway + tram + train + light_rail + trolleybus. Hors : ferry / funiculaire / téléphérique. |
+| Définition « commerces »                | Retail OSM strict (`shop=*` + `marketplace`). Hors : restaurants, pharmacies, banques.            |
+| Définition « écoles »                   | `amenity=school` uniquement (maternelle → lycée). Hors : crèches, post-bac, fac.                  |
 
 ---
 

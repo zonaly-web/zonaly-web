@@ -8,11 +8,11 @@
 
 3 appels en parallèle, tous via `codesInsee` (= `citycode` GeoPF) :
 
-| Donnée affichée | Endpoint | Champ exploité |
-|---|---|---|
-| Radon | `/api/v2/radon` | `content[0].classePotentiel` (1/2/3) |
-| Sites pollués (count) | `/api/v2/ssp` | somme des `totalElements` de **instructions + conclusionsSis + conclusionsSup** (CASIAS exclu, voir §8) |
-| Argile (RGA) | `/api/v2/rga` | max des `codeExposition` (1/2/3) |
+| Donnée affichée       | Endpoint        | Champ exploité                                                                                          |
+| --------------------- | --------------- | ------------------------------------------------------------------------------------------------------- |
+| Radon                 | `/api/v2/radon` | `content[0].classePotentiel` (1/2/3)                                                                    |
+| Sites pollués (count) | `/api/v2/ssp`   | somme des `totalElements` de **instructions + conclusionsSis + conclusionsSup** (CASIAS exclu, voir §8) |
+| Argile (RGA)          | `/api/v2/rga`   | max des `codeExposition` (1/2/3)                                                                        |
 
 Token : `Authorization: Bearer ${GEORISQUES_API_TOKEN}` dans `.env.local`.
 Base : `https://www.georisques.gouv.fr/api/v2`.
@@ -34,39 +34,41 @@ renvoie les 36 390 communes de France).
 GeoPF renvoie le `citycode` **arrondissement** (75101–75120, 69381–69389, 13201–13216),
 pas la commune-mère. Mais l'indexation INSEE diffère selon l'endpoint :
 
-| Endpoint | Indexé par | citycode GeoPF (75101) marche ? |
-|---|---|---|
-| `/radon` | arrondissement | ✅ oui (granularité géologique sub-commune) |
-| `/ssp` casias | arrondissement | ✅ partiellement |
-| `/ssp` SIS/SUP/instructions | commune-mère | ❌ non (perdu sur PLM) |
-| `/rga` | commune-mère | ❌ non (renvoie 0 sur PLM) |
-| `/gaspar/risques` | commune-mère | ❌ non |
+| Endpoint                    | Indexé par     | citycode GeoPF (75101) marche ?             |
+| --------------------------- | -------------- | ------------------------------------------- |
+| `/radon`                    | arrondissement | ✅ oui (granularité géologique sub-commune) |
+| `/ssp` casias               | arrondissement | ✅ partiellement                            |
+| `/ssp` SIS/SUP/instructions | commune-mère   | ❌ non (perdu sur PLM)                      |
+| `/rga`                      | commune-mère   | ❌ non (renvoie 0 sur PLM)                  |
+| `/gaspar/risques`           | commune-mère   | ❌ non                                      |
 
 Conséquence acceptée actuellement : sur Paris/Lyon/Marseille, RGA affiche
 souvent "Aucun" et le décompte sites pollués sous-estime parce qu'on rate
 les SIS/SUP indexés au niveau commune.
 
 **Fix possible** : mapper le citycode → commune-mère pour `/rga` :
+
 ```ts
 function communeMere(c: string) {
-  if (/^751\d{2}$/.test(c)) return "75056";   // Paris
-  if (/^6938\d$/.test(c))    return "69123";   // Lyon
-  if (/^132\d{2}$/.test(c)) return "13055";   // Marseille
+  if (/^751\d{2}$/.test(c)) return "75056"; // Paris
+  if (/^6938\d$/.test(c)) return "69123"; // Lyon
+  if (/^132\d{2}$/.test(c)) return "13055"; // Marseille
   return c;
 }
 ```
+
 Mais à appliquer endpoint par endpoint — radon ne veut PAS ce mapping.
 
 ### 3. SSP — base splittée à 2 niveaux d'INSEE
 
 Test sur Paris 18e :
 
-| Tiroir | `codesInsee=75118` (arr.) | `codesInsee=75056` (commune) |
-|---|---|---|
-| casias | 440 | 6 |
-| instructions | 1 | 51 |
-| conclusionsSis | 1 | 17 |
-| conclusionsSup | 0 | 0 |
+| Tiroir         | `codesInsee=75118` (arr.) | `codesInsee=75056` (commune) |
+| -------------- | ------------------------- | ---------------------------- |
+| casias         | 440                       | 6                            |
+| instructions   | 1                         | 51                           |
+| conclusionsSis | 1                         | 17                           |
+| conclusionsSup | 0                         | 0                            |
 
 **Aucun chevauchement** entre les deux sets. Filtre strict `item.codeInsee == codesInsee`.
 Pour avoir l'image complète sur PLM il faut faire les **2 appels** et additionner.
@@ -79,6 +81,7 @@ est indexé `codeInsee=75056` dans la base, donc invisible si on filtre par 7511
 
 Pour les données **hyper-locales** (sols pollués, argile à fine échelle), `lat/lon + rayon`
 est plus précis :
+
 - Intersecte les MultiPolygons des SIS/SUP (testé OK avec rayon 500m)
 - Renvoie la classe RGA exacte du point (pas l'inventaire commune)
 
@@ -99,6 +102,7 @@ RGA prend le **max** (principe de précaution).
 
 L'API renvoie `"Risque Existant - faible|moyen|important"` (PAS "fort" malgré ce
 qu'on pourrait croire). Mapping :
+
 ```
 classePotentiel "1" → Faible
 classePotentiel "2" → Modéré
@@ -122,12 +126,12 @@ CASIAS  →  INSTRUCTIONS  →  conclusionsSis  →  conclusionsSup
 "présomption"  "enquête"      "confirmé"      "interdit"
 ```
 
-| Tiroir | Sens | Vérification réelle ? |
-|---|---|---|
-| **CASIAS** | Inventaire historique BASIAS (XIXe–XXe). "Il y a eu une activité polluante ici un jour" | Non, jamais (en général) |
-| **instructions** | Procédure DREAL en cours ou clôturée | Oui, en cours |
-| **conclusionsSis** | Pollution **mesurée et confirmée**, info ALUR obligatoire | Oui (mesures de sols) |
-| **conclusionsSup** | **Restriction légale** d'usage du terrain (servitude PLU) | Oui + arrêté préfectoral |
+| Tiroir             | Sens                                                                                    | Vérification réelle ?    |
+| ------------------ | --------------------------------------------------------------------------------------- | ------------------------ |
+| **CASIAS**         | Inventaire historique BASIAS (XIXe–XXe). "Il y a eu une activité polluante ici un jour" | Non, jamais (en général) |
+| **instructions**   | Procédure DREAL en cours ou clôturée                                                    | Oui, en cours            |
+| **conclusionsSis** | Pollution **mesurée et confirmée**, info ALUR obligatoire                               | Oui (mesures de sols)    |
+| **conclusionsSup** | **Restriction légale** d'usage du terrain (servitude PLU)                               | Oui + arrêté préfectoral |
 
 **Pourquoi exclure CASIAS** :
 
@@ -160,6 +164,7 @@ est de toute façon compté ailleurs.
 françaises → bruit visuel, pas d'info actionnable.
 
 Pour remettre l'inondation **utile** plus tard :
+
 ```
 Promise.all([
   /api/v2/gaspar/azi?longitude&latitude&rayon=300,

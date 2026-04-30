@@ -27,6 +27,7 @@ Melodi suit SDMX : chaque observation = un point dans un hypercube. Pour le RP_L
 **Il n'y a pas de flag "ligne totale"**. Pour récupérer un total, il faut filtrer la valeur magique `"_T"` sur **toutes** les dimensions sauf celle qu'on veut ventiler.
 
 Exemple : pour avoir le nombre total de propriétaires (toutes époques, tous chauffages confondus), on cherche la ligne où :
+
 ```
 TSH = "100"            (statut spécifique)
 NRG_SRC = "_T"         (toutes énergies)
@@ -41,14 +42,14 @@ Si on omet UN filtre `_T`, on récupère plusieurs lignes ventilées et on doubl
 
 **Mon mapping initial était faux**. Voici la vérité après cross-check avec ADIL Paris :
 
-| Code | Signification |
-|------|---------------|
-| `100` | Propriétaires (tous types confondus) |
-| `211` | Locataires d'un logement vide non-HLM |
-| `212_222` | Locataires meublé + sous-locataires |
-| `221` | Locataires HLM |
-| `300` | Logés gratuitement |
-| `_T` | Total tous statuts |
+| Code      | Signification                         |
+| --------- | ------------------------------------- |
+| `100`     | Propriétaires (tous types confondus)  |
+| `211`     | Locataires d'un logement vide non-HLM |
+| `212_222` | Locataires meublé + sous-locataires   |
+| `221`     | Locataires HLM                        |
+| `300`     | Logés gratuitement                    |
+| `_T`      | Total tous statuts                    |
 
 **Validation contre Paris (75056)** : 33,4% propriétaires, 18% HLM — colle aux stats ADIL.
 
@@ -62,7 +63,7 @@ L'API codelist d'INSEE (`/melodi/codelist/CL_TSH`) renvoie 404 sur tous les path
 
 ## Pourcentages : toujours calculés, jamais bruts
 
-Le dataset `DS_RP_LOGEMENT_PRINC` n'expose **que des comptages absolus** (`DWELLINGS`, `DWELLINGS_ROOMS`, `DWELLINGS_POPSIZE`, `DWELLING_L_STAY`). Aucune variante "_PCT" ou "_SHARE".
+Le dataset `DS_RP_LOGEMENT_PRINC` n'expose **que des comptages absolus** (`DWELLINGS`, `DWELLINGS_ROOMS`, `DWELLINGS_POPSIZE`, `DWELLING_L_STAY`). Aucune variante "\_PCT" ou "\_SHARE".
 
 → On calcule nous-même `(loc) / total × 100`. Cohérent avec la stratégie : récupérer la ligne `TSH=_T` comme dénominateur garantit que les pourcentages somment à 100%.
 
@@ -70,10 +71,10 @@ Le dataset `DS_RP_LOGEMENT_PRINC` n'expose **que des comptages absolus** (`DWELL
 
 ## Année des données (limites de fraîcheur)
 
-| Dataset | Année max disponible (avril 2026) | Délai typique |
-|---------|-----------------------------------|----------------|
-| `DS_FILOSOFI_CC` | **2021** | N-3 voire N-4 |
-| `DS_RP_LOGEMENT_PRINC` | **2022** | N-3 (recensement glissant 5 ans) |
+| Dataset                | Année max disponible (avril 2026) | Délai typique                    |
+| ---------------------- | --------------------------------- | -------------------------------- |
+| `DS_FILOSOFI_CC`       | **2021**                          | N-3 voire N-4                    |
+| `DS_RP_LOGEMENT_PRINC` | **2022**                          | N-3 (recensement glissant 5 ans) |
 
 ⚠️ `TIME_PERIOD=2022` est **hardcodé** dans `route.ts`. À bumper manuellement quand INSEE publiera RP 2023 (probablement mi-2026). Pour FILOSOFI on ne filtre pas — on prend ce qui vient.
 
@@ -84,6 +85,7 @@ Les valeurs renvoyées sont **décimales** même pour des comptages de logements
 ## Communes sans données
 
 Certaines petites communes ne sont pas dans FILOSOFI (seuil de secret statistique). L'API renvoie alors un payload vide ou un 404. On gère :
+
 - `fetchMelodi()` retourne `null` sur 404/400
 - Les parsers retournent `null` sur dataset vide
 - L'UI affiche "N/A" via `MetricValue`
@@ -99,6 +101,7 @@ Ne **pas** faire échouer toute la page si une métrique manque — on peut avoi
 ## Validation des données — toujours cross-checker
 
 Méthode qui m'a sauvé :
+
 1. Tester sur Paris global (75056) où les stats sont largement publiées
 2. Comparer à ADIL Paris ou INSEE.fr
 3. Si écart > 2 points, le mapping de codes est probablement faux

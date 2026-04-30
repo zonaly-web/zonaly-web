@@ -21,13 +21,13 @@ Trade-off retenu : on perd la profondeur historique (raw commence en **2014**, v
 
 ## Paramètres clés
 
-| Param | Valeur | Note |
-|---|---|---|
+| Param        | Valeur                 | Note                                        |
+| ------------ | ---------------------- | ------------------------------------------- |
 | `code_insee` | citycode INSEE 5 chars | **Pas le code postal !** Cf. piège plus bas |
-| `anneemut` | année (int) | Une seule année par requête |
-| `codtypbien` | `121` | Voir piège ci-dessous |
-| `page_size` | `500` | Max testé qui passe ; défaut = 100 |
-| `page` | int ≥ 1 | Pagination 1-based |
+| `anneemut`   | année (int)            | Une seule année par requête                 |
+| `codtypbien` | `121`                  | Voir piège ci-dessous                       |
+| `page_size`  | `500`                  | Max testé qui passe ; défaut = 100          |
+| `page`       | int ≥ 1                | Pagination 1-based                          |
 
 ## ⚠️ Piège #1 : `codtypbien` n'a PAS la même sémantique sur le raw que sur l'aggrégé
 
@@ -37,18 +37,18 @@ Sur le **raw** `codtypbien=121` = **UN APPARTEMENT** uniquement (typologie de mu
 
 Mapping observé sur le raw (Bordeaux 2024) :
 
-| `codtypbien` | `libtypbien` |
-|---|---|
-| 111 | UNE MAISON |
-| **121** | **UN APPARTEMENT** ← ce qu'on prend |
-| 122 | DEUX APPARTEMENTS |
-| 120 | APPARTEMENT INDETERMINE |
-| 131 | UNE DEPENDANCE |
-| 132 | DES DEPENDANCES |
-| 101 | VEFA sans descriptif |
-| 152 | BATI MIXTE (logement + activité) |
-| 14 | ACTIVITE |
-| 21 | TERRAIN |
+| `codtypbien` | `libtypbien`                        |
+| ------------ | ----------------------------------- |
+| 111          | UNE MAISON                          |
+| **121**      | **UN APPARTEMENT** ← ce qu'on prend |
+| 122          | DEUX APPARTEMENTS                   |
+| 120          | APPARTEMENT INDETERMINE             |
+| 131          | UNE DEPENDANCE                      |
+| 132          | DES DEPENDANCES                     |
+| 101          | VEFA sans descriptif                |
+| 152          | BATI MIXTE (logement + activité)    |
+| 14           | ACTIVITE                            |
+| 21           | TERRAIN                             |
 
 → **Conséquence : aujourd'hui on n'indexe que les appartements, pas les maisons.** Pour avoir un "prix médian d'un logement", il faut filtrer `codtypbien ∈ {111, 121}` (deux requêtes upstream ou filtre côté code).
 
@@ -83,10 +83,10 @@ L'API renvoie `"401700.00"` et `"83.00"` (chaînes), pas des nombres. D'où le `
 
 ## Profondeur historique
 
-| Endpoint | Première année dispo | Dernière |
-|---|---|---|
-| Aggrégé `/prix/annuel/` | **2010** | 2024 |
-| Raw `/geomutations/` | **2014** | 2025+ |
+| Endpoint                | Première année dispo | Dernière |
+| ----------------------- | -------------------- | -------- |
+| Aggrégé `/prix/annuel/` | **2010**             | 2024     |
+| Raw `/geomutations/`    | **2014**             | 2025+    |
 
 Évolution **5 ans** : OK avec le raw (latest=2025 → base=2020).
 Évolution **10 ans** : OK avec le raw aujourd'hui (2025 → 2015), **mais ça casse en janvier 2027** quand la base devient 2016 et qu'on essaiera de remonter à 2014, qui marchera, puis 2028 où il faudrait 2013 = vide.
@@ -111,6 +111,7 @@ Le **preprod Cerema est instable** :
 - Pas de retry intégré côté backend ; si une page échoue, toute la requête plante (`Promise.all`).
 
 Idées de robustification non implémentées :
+
 - `retry` côté React Query (utilise les défauts du provider, à vérifier).
 - Retry interne par page (3 essais espacés) avant de jeter.
 - Fallback sur l'aggrégé si le raw timeout.

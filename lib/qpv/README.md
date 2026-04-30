@@ -51,11 +51,11 @@ Pattern calqué sur les autres intégrations externes (SSMSI, INSEE, Cerema, Gé
 
 Les QPV sont définis au niveau **commune** par le décret. Pour Paris/Marseille/Lyon, **toutes** les QPV partagent le code commune principale :
 
-| Ville      | `insee_com` dans la source | Codes arrondissement (géocodeuse) |
-| ---------- | -------------------------- | --------------------------------- |
-| Paris      | `75056`                    | `75101`–`75120`                   |
-| Marseille  | `13055`                    | `13201`–`13216`                   |
-| Lyon       | `69123`                    | `69381`–`69389`                   |
+| Ville     | `insee_com` dans la source | Codes arrondissement (géocodeuse) |
+| --------- | -------------------------- | --------------------------------- |
+| Paris     | `75056`                    | `75101`–`75120`                   |
+| Marseille | `13055`                    | `13201`–`13216`                   |
+| Lyon      | `69123`                    | `69381`–`69389`                   |
 
 **Conséquence** : la géocodeuse `geoplateforme` retourne le code arrondissement, pas le code commune. Sans normalisation → 0 QPV pour Paris/Marseille/Lyon → ~5M d'habitants cassés silencieusement.
 
@@ -73,11 +73,11 @@ Quelques rows ont un `insee_com` du genre `"13055, 13070"` — un QPV qui chevau
 
 ```ts
 OR: [
-  { insee_com: citycode },                       // seul
-  { insee_com: { startsWith: `${citycode}, ` } },// "X, ..."
-  { insee_com: { endsWith: `, ${citycode}` } },  // "..., X"
-  { insee_com: { contains: `, ${citycode}, ` } },// "..., X, ..."
-]
+  { insee_com: citycode }, // seul
+  { insee_com: { startsWith: `${citycode}, ` } }, // "X, ..."
+  { insee_com: { endsWith: `, ${citycode}` } }, // "..., X"
+  { insee_com: { contains: `, ${citycode}, ` } }, // "..., X, ..."
+];
 ```
 
 ⚠️ **Ne pas remplacer par `contains: citycode` tout court** : faux positifs garantis (`13070` ⊂ `130700`, `213070`, etc.). Les bornes `, ` font office de séparateurs de mots.
@@ -90,7 +90,7 @@ Le client généré (`prisma-client` provider, output dans `lib/generated/prisma
 
 ```ts
 import { PrismaPg } from "@prisma/adapter-pg";
-new PrismaClient({ adapter: new PrismaPg({ connectionString }) })
+new PrismaClient({ adapter: new PrismaPg({ connectionString }) });
 ```
 
 Sinon : `PrismaClientInitializationError: PrismaClient needs to be constructed with a non-empty, valid PrismaClientOptions`.
@@ -102,6 +102,7 @@ C'est déjà câblé dans `lib/db/prisma.ts` (singleton avec dev-mode global). R
 ### 4. Geometry pas exploitable depuis Prisma typé
 
 Le champ `geometry` est `Unsupported("geometry(MULTIPOLYGON, 4326)")` dans `schema.prisma`. Donc :
+
 - Pas dans le type généré → pas accessible depuis l'API typée.
 - Toute requête PostGIS (`ST_Intersects`, `ST_Contains`, etc.) doit passer par `prisma.$queryRaw`.
 

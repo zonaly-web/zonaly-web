@@ -30,17 +30,18 @@ Le champ `COMM` ne contient **PAS** les codes INSEE arrondissement (75101..75120
 
 Pour distinguer un arrondissement, il faut filtrer sur `ADR_CODPOST_TER` (code postal du terrain) :
 
-| INSEE arrondissement | Code postal | Filtre |
-|---|---|---|
-| 75101..75120 (Paris) | 75001..75020 | `ADR_CODPOST_TER__exact=75001` |
-| 69381..69389 (Lyon) | 69001..69009 | idem |
-| 13201..13216 (Marseille) | 13001..13016 | idem |
+| INSEE arrondissement     | Code postal  | Filtre                         |
+| ------------------------ | ------------ | ------------------------------ |
+| 75101..75120 (Paris)     | 75001..75020 | `ADR_CODPOST_TER__exact=75001` |
+| 69381..69389 (Lyon)      | 69001..69009 | idem                           |
+| 13201..13216 (Marseille) | 13001..13016 | idem                           |
 
 Mapping codé dans `armCitycodeToPostalCode()` : `INSEE - 100` (Paris), `-380` (Lyon), `-200` (Marseille).
 
 ⚠️ **Code postal ≠ INSEE arrondissement conceptuellement** — l'un vient de La Poste, l'autre de l'INSEE. En pratique pour P/L/M ils coïncident parfaitement, mais c'est un proxy. Hors P/L/M, les codes postaux ne sont pas fiables (1 commune peut avoir N codes postaux ; ex: Toulouse a 31000, 31100, 31200…).
 
 → La logique route :
+
 - ARM détecté → filtre `ADR_CODPOST_TER`
 - Sinon → filtre `COMM`
 
@@ -64,14 +65,14 @@ Inspection : les doublons partagent `NUM_DAU` mais ont des `DATE_REELLE_AUTORISA
 
 ## Mapping ETAT_DAU (extrait du dictionnaire SDES)
 
-| Code | Signification |
-|---|---|
-| 2 | Autorisé |
-| 4 | **Annulé** |
-| 5 | Commencé (DOC déposée) |
-| 6 | Terminé (DAACT déposée) |
+| Code | Signification           |
+| ---- | ----------------------- |
+| 2    | Autorisé                |
+| 4    | **Annulé**              |
+| 5    | Commencé (DOC déposée)  |
+| 6    | Terminé (DAACT déposée) |
 
-Notes du dictionnaire : *"Toutes les DAU du fichier ont été autorisées"* — les permis refusés/en instruction n'apparaissent **pas** dans le dataset. On voit uniquement les permis qui ont reçu le feu vert administratif.
+Notes du dictionnaire : _"Toutes les DAU du fichier ont été autorisées"_ — les permis refusés/en instruction n'apparaissent **pas** dans le dataset. On voit uniquement les permis qui ont reçu le feu vert administratif.
 
 → Filtre `ETAT_DAU !== 4` dans `aggregatePermits` pour exclure les annulés. Effet observé : Paris −1 logt/permis sur 12 mois, Toulouse −47 logts / −3 permis. Marginal mais propre.
 
@@ -84,6 +85,7 @@ L'API tabular accepte les params `page` et `page_size` **mais ne les respecte pa
 ## Date de filtrage : DATE_REELLE_AUTORISATION
 
 Trois dates sont disponibles par permis :
+
 - `DATE_REELLE_AUTORISATION` — date de la décision (= "permis autorisé")
 - `DATE_REELLE_DOC` — date d'ouverture de chantier
 - `DATE_REELLE_DAACT` — date d'achèvement et conformité
@@ -97,6 +99,7 @@ On filtre sur `DATE_REELLE_AUTORISATION__greater={cutoff}` car c'est la date qui
 Métropole + Corse + DOM "classiques" (Guadeloupe 971, Martinique 972, Guyane 973, Réunion 974, Mayotte 976).
 
 **Non couverts** (régime juridique d'urbanisme distinct) :
+
 - Saint-Pierre-et-Miquelon (975)
 - Saint-Martin / Saint-Barthélemy (977/978)
 - Polynésie, Nouvelle-Calédonie, Wallis-et-Futuna, TAAF
@@ -110,10 +113,10 @@ Métropole + Corse + DOM "classiques" (Guadeloupe 971, Martinique 972, Guyane 97
 
 Comparaison Paris vs Kremlin-Bicêtre qui surprend (cf. session précédente) :
 
-| | Permis | Logts | Logts/1000 hab |
-|---|---:|---:|---:|
-| Paris commune | 105 | 1267 | 0.6 |
-| Kremlin-Bicêtre | 8 | 718 | 27.6 |
+|                 | Permis | Logts | Logts/1000 hab |
+| --------------- | -----: | ----: | -------------: |
+| Paris commune   |    105 |  1267 |            0.6 |
+| Kremlin-Bicêtre |      8 |   718 |           27.6 |
 
 Une petite commune en mutation urbaine peut afficher plus de logements en absolu qu'un arrondissement parisien — c'est cohérent (foncier saturé Paris vs ZAC francilienne en cours), pas un bug.
 

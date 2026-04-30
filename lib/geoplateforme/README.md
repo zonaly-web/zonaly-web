@@ -4,10 +4,10 @@ Notes internes sur l'intégration de l'API IGN/Géoplateforme (autocomplétion +
 
 ## Endpoints utilisés
 
-| Usage             | URL                                          | Méthode | Auth |
-| ----------------- | -------------------------------------------- | ------- | ---- |
-| Autocomplétion    | `https://data.geopf.fr/geocodage/completion` | GET     | Aucune (publique, gratuite) |
-| Géocodage précis  | `https://data.geopf.fr/geocodage/search`     | GET     | Aucune (publique, gratuite) |
+| Usage            | URL                                          | Méthode | Auth                        |
+| ---------------- | -------------------------------------------- | ------- | --------------------------- |
+| Autocomplétion   | `https://data.geopf.fr/geocodage/completion` | GET     | Aucune (publique, gratuite) |
+| Géocodage précis | `https://data.geopf.fr/geocodage/search`     | GET     | Aucune (publique, gratuite) |
 
 Docs : https://cartes.gouv.fr/aide/fr/guides-utilisateur/utiliser-les-services-de-la-geoplateforme/geocodage/ et `.../autocompletion/`
 
@@ -22,6 +22,7 @@ Tous les appels passent par **un proxy Next.js** (`app/api/geoplateforme/*`) qui
 5. renvoie une shape stable au client
 
 Côté browser, `lib/geoplateforme/use-geoplateforme.ts` expose deux hooks TanStack Query :
+
 - `useAddressAutocomplete(query)` — debounce 300ms via `usehooks-ts`, `keepPreviousData` pour éviter le flicker du dropdown
 - `useGeocodeAddress()` — mutation déclenchée au clic sur "Analyser"
 
@@ -48,9 +49,9 @@ Ceinture + bretelles. Si on retire ce filter, le dropdown peut afficher des comm
 
 ### 3. Les deux endpoints ont des **shapes de réponse complètement différentes**
 
-| Endpoint    | Shape                                                                 |
-| ----------- | --------------------------------------------------------------------- |
-| `/completion` | Custom JSON : `{ status, results: [{ country, fulltext, x, y, ... }] }` |
+| Endpoint      | Shape                                                                          |
+| ------------- | ------------------------------------------------------------------------------ |
+| `/completion` | Custom JSON : `{ status, results: [{ country, fulltext, x, y, ... }] }`        |
 | `/search`     | GeoJSON `FeatureCollection` : `{ type, features: [{ geometry, properties }] }` |
 
 Schémas Zod séparés (`AutocompleteUpstreamResponseSchema` vs `GeocodeUpstreamResponseSchema`). Pas de réutilisation possible.
@@ -80,6 +81,7 @@ Les réponses IGN contiennent des champs supplémentaires (`importance`, `distri
 ### 7. Longueur minimale de query : 3 caractères
 
 Sous 3 caractères, l'API renvoie soit :
+
 - une 400
 - soit du bruit massif (toutes les rues commençant par "ru" pour "ru")
 
@@ -96,6 +98,7 @@ L'API est gratuite et publique, **sans clé**. Mais l'IGN peut throttle silencie
 ### 9. Pas d'erreur exploitable côté client
 
 L'API ne renvoie pas de message d'erreur structuré : juste un status HTTP, parfois 200 avec un tableau vide. Côté route on convertit ça en :
+
 - `400` invalid_query (notre validation)
 - `502 upstream_error` (HTTP non-OK)
 - `502 upstream_invalid` (Zod rejette la shape)
