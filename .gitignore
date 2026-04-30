@@ -40,17 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# notes internes (révèlent l'implémentation)
-lib/georisques/README.md
-lib/insee/README.md
-lib/cerema/README.md
-lib/geoplateforme/README.md
-lib/ssmsi/README.md
-lib/sitadel/README.md
-lib/qrr/README.md
-lib/qpv/README.md
-lib/overpass/README.md
-
 # generated
 /lib/prisma/generated/
 
