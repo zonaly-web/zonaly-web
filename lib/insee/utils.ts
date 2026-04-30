@@ -69,7 +69,7 @@ export function parseRpLogement(obs: MelodiObservation[] | null): {
   };
 }
 
-function isArmCitycode(citycode: string): boolean {
+export function isArmCitycode(citycode: string): boolean {
   if (/^751\d{2}$/.test(citycode)) {
     const n = Number(citycode);
     return n >= 75101 && n <= 75120;
