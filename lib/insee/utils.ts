@@ -89,3 +89,68 @@ export function citycodeToGeo(citycode: string): string {
   const level = isArmCitycode(citycode) ? "ARM" : "COM";
   return `${GEO_VINTAGE}-${level}-${citycode}`;
 }
+
+const CITYCODE_REGEX = /^\d{5}[AB]?$/;
+
+function parseEuroAmount(raw: string | undefined): number | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  if (trimmed.length === 0 || trimmed === "NA") return null;
+  const n = Number(trimmed.replace(/\s/g, "").replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+export type FilosofiCsvParsed = {
+  codeInsee: string;
+  libelle: string | null;
+  revenuMedianEurUce: number | null;
+};
+
+export function parseFilosofiCsvRow(row: Record<string, string>): FilosofiCsvParsed | null {
+  const codeInsee = row["Code géographique"]?.trim();
+  if (!codeInsee || !CITYCODE_REGEX.test(codeInsee)) return null;
+  return {
+    codeInsee,
+    libelle: row["Libellé géographique"]?.trim() || null,
+    revenuMedianEurUce: parseEuroAmount(row["[DISP] Médiane (€)"]),
+  };
+}
+
+const RP_TOTAL_KEYS = ["P21_RP", "P20_RP", "P19_RP"] as const;
+const RP_LOC_KEYS = ["P21_RP_LOC", "P20_RP_LOC", "P19_RP_LOC"] as const;
+const RP_PROP_KEYS = ["P21_RP_PROP", "P20_RP_PROP", "P19_RP_PROP"] as const;
+
+function pickNumber(row: Record<string, string>, keys: readonly string[]): number | null {
+  for (const k of keys) {
+    const raw = row[k];
+    if (raw == null) continue;
+    const n = Number(String(raw).replace(",", "."));
+    if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+export type RpLogementCsvParsed = {
+  codeInsee: string;
+  libelle: string | null;
+  partLocataires: number | null;
+  partProprietaires: number | null;
+};
+
+export function parseRpLogementCsvRow(row: Record<string, string>): RpLogementCsvParsed | null {
+  const codeInsee = row.CODGEO?.trim() ?? row.codgeo?.trim();
+  if (!codeInsee || !CITYCODE_REGEX.test(codeInsee)) return null;
+  const total = pickNumber(row, RP_TOTAL_KEYS);
+  const loc = pickNumber(row, RP_LOC_KEYS);
+  const prop = pickNumber(row, RP_PROP_KEYS);
+  const libelle = row.LIBGEO?.trim() ?? row.libgeo?.trim() ?? null;
+  if (total == null || total <= 0) {
+    return { codeInsee, libelle, partLocataires: null, partProprietaires: null };
+  }
+  return {
+    codeInsee,
+    libelle,
+    partLocataires: loc == null ? null : (loc / total) * 100,
+    partProprietaires: prop == null ? null : (prop / total) * 100,
+  };
+}

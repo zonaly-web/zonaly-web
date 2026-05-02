@@ -43,5 +43,11 @@ next-env.d.ts
 # generated
 /lib/prisma/generated/
 
-# data
-scripts/data/
+# data dumps and pipeline runtime artifacts
+scripts/data/*.csv
+scripts/data/*.geojson
+scripts/data/*.zip
+scripts/data/*.gz
+scripts/data/qrr/
+scripts/data/cache/
+scripts/data/logs/

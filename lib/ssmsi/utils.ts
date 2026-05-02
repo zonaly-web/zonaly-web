@@ -1,5 +1,31 @@
 import type { SsmsiUpstreamRow } from "./schemas";
 
+const CITYCODE_REGEX = /^\d{5}[AB]?$/;
+
+function parseDecimal(raw: string | undefined): number | null {
+  if (raw == null) return null;
+  const trimmed = String(raw).trim();
+  if (trimmed.length === 0 || trimmed === "NA") return null;
+  const n = Number(trimmed.replace(",", "."));
+  return Number.isFinite(n) ? n : null;
+}
+
+export function parseSsmsiCsvRow(row: Record<string, string>): SsmsiUpstreamRow | null {
+  const codgeo = row.CODGEO_2025?.trim();
+  if (!codgeo || !CITYCODE_REGEX.test(codgeo)) return null;
+  const annee = parseDecimal(row.annee);
+  const indicateur = row.indicateur?.trim();
+  if (annee == null || !indicateur) return null;
+  return {
+    CODGEO_2025: codgeo,
+    annee,
+    indicateur,
+    nombre: parseDecimal(row.nombre),
+    taux_pour_mille: parseDecimal(row.taux_pour_mille),
+    insee_pop: parseDecimal(row.insee_pop),
+  };
+}
+
 const AGRESSION_INDICATEURS = new Set([
   "Violences physiques hors cadre familial",
   "Violences sexuelles",
