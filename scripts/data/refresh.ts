@@ -12,6 +12,7 @@ import { sitadelSource } from "./sources/sitadel";
 import { dvfSource } from "./sources/dvf";
 import { qpvSource } from "./sources/qpv";
 import { qrrSource } from "./sources/qrr";
+import { qpvQrrCountSource } from "./sources/qpvQrrCount";
 import { logNullCounts } from "@/lib/batch/dbInsights";
 import type { BatchContext, SourceModule } from "./context";
 
@@ -27,6 +28,7 @@ const ALL_SOURCES: SourceModule[] = [
   dvfSource,
   qpvSource,
   qrrSource,
+  qpvQrrCountSource,
 ];
 
 type Args = {

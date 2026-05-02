@@ -28,19 +28,22 @@ Prérequis :
 
 ## Sources couvertes
 
-| Source        | Tables alimentées                                                                                                              | Millésime                    | Volume         |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | -------------- |
-| `filosofi`    | `CommuneMetric.revenuMedianEurUce`, `filosofiAsOf`                                                                             | 2021                         | ~5 Mo          |
-| `rp_logement` | `CommuneMetric.partLocataires`, `partProprietaires`, `rpLogementAsOf`                                                          | 2021                         | ~99 Mo (zip)   |
-| `radon`       | `CommuneMetric.radonClasse`, `radonAsOf`                                                                                       | **2019** (limitation connue) | ~1 Mo          |
-| `ssmsi`       | `CommuneMetric.cambriolagesPer1000Logements`, `agressionsPer1000Habitants`, `ssmsiAsOf`                                        | dernière année du fichier    | ~40 Mo (gz)    |
-| `atmo`        | `CommuneMetric.atmoIndiceMoyen`, `atmoJoursMauvais`, `atmoAsOf`                                                                | bulletin glissant 3 jours    | ~17 Mo         |
-| `sitadel`     | `CommuneMetric.permitsLogementsAutorises12m`, `permitsCount12m`, `sitadelAsOf`                                                 | 12 derniers mois             | ~830 Mo        |
-| `dvf`         | `CommuneMetric.prixMedianM2Eur`, `prixMedianM2EurNMinus5`, `prixMedianM2EvolutionPct`, `ventesCount`, `dvfAsOf`, `dvfBaseYear` | courant 2025 vs 2021 (4 ans) | 2× ~95 Mo (gz) |
-| `qpv`         | `Qpv` (PostGIS, contours quartiers prioritaires)                                                                               | 2024                         | ~10 Mo (zip)   |
-| `qrr`         | `Qrr` (PostGIS, contours quartiers de reconquête républicaine)                                                                 | 2021                         | ~360 Ko (zip)  |
+| Source          | Tables alimentées                                                                                                              | Millésime                    | Volume                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- | ---------------------------------------- |
+| `filosofi`      | `CommuneMetric.revenuMedianEurUce`, `filosofiAsOf`                                                                             | 2021                         | ~5 Mo                                    |
+| `rp_logement`   | `CommuneMetric.partLocataires`, `partProprietaires`, `rpLogementAsOf`                                                          | 2021                         | ~99 Mo (zip)                             |
+| `radon`         | `CommuneMetric.radonClasse`, `radonAsOf`                                                                                       | **2019** (limitation connue) | ~1 Mo                                    |
+| `ssmsi`         | `CommuneMetric.cambriolagesPer1000Logements`, `agressionsPer1000Habitants`, `ssmsiAsOf`                                        | dernière année du fichier    | ~40 Mo (gz)                              |
+| `atmo`          | `CommuneMetric.atmoIndiceMoyen`, `atmoJoursMauvais`, `atmoAsOf`                                                                | bulletin glissant 3 jours    | ~17 Mo                                   |
+| `sitadel`       | `CommuneMetric.permitsLogementsAutorises12m`, `permitsCount12m`, `sitadelAsOf`                                                 | 12 derniers mois             | ~830 Mo                                  |
+| `dvf`           | `CommuneMetric.prixMedianM2Eur`, `prixMedianM2EurNMinus5`, `prixMedianM2EvolutionPct`, `ventesCount`, `dvfAsOf`, `dvfBaseYear` | courant 2025 vs 2021 (4 ans) | 2× ~95 Mo (gz)                           |
+| `qpv`           | `Qpv` (PostGIS, contours quartiers prioritaires)                                                                               | 2024                         | ~10 Mo (zip)                             |
+| `qrr`           | `Qrr` (PostGIS, contours quartiers de reconquête républicaine)                                                                 | 2021                         | ~360 Ko (zip)                            |
+| `qpv_qrr_count` | `CommuneMetric.qpvCount`, `qrrCount`, `qpvQrrAsOf`                                                                             | dérivé des tables Qpv/Qrr    | reverse-geo geo.api.gouv.fr (~150 calls) |
 
 `qpv` et `qrr` téléchargent une archive ZIP depuis data.gouv (datasets ANCT et Ministère de l'intérieur), l'extraient dans le cache, parsent le GeoJSON / Shapefile en pur Node (`shapefile` npm), vident la table cible (`prisma.deleteMany`), puis insèrent ligne par ligne via `prisma.$executeRaw` avec `ST_Multi(ST_SetSRID(ST_GeomFromGeoJSON(...), 4326))` pour la colonne `geometry`.
+
+`qpv_qrr_count` tourne **après** `qpv` et `qrr` : il agrège les compteurs par commune. Pour QPV, il splitte les `insee_com` multi-communes (ex. `"69123, 69259"`) et résout les PLM (commune-mère 75056/69123/13055) vers leur ARM via reverse-geocoding (`geo.api.gouv.fr/communes?lat&lon&type=arrondissement-municipal`). Pour QRR (sans `insee_com` natif), il calcule le centroïde via PostGIS et reverse-géocode. Il fait ensuite un `updateMany({ qpvCount: 0, qrrCount: 0 })` puis upsert les compteurs non-nuls — sémantique : `0 = mesuré, aucun QPV/QRR` vs `NULL = pas encore mesuré`.
 
 ## Sources non couvertes par le batch
 
@@ -54,15 +57,16 @@ Voir `prisma/schema.prisma` (`model CommuneMetric`) pour le shape complet ; les 
 
 ## Stratégie ARM (Paris/Lyon/Marseille)
 
-| Source      | Présence des 45 ARM                             | Comportement                                                                                              |
-| ----------- | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Filosofi    | Native (75101–75120, 69381–69389, 13201–13216)  | Lecture directe                                                                                           |
-| RP Logement | Native                                          | Lecture directe                                                                                           |
-| Radon       | Native                                          | Lecture directe                                                                                           |
-| SSMSI       | Native (`CODGEO_2025`)                          | Lecture directe                                                                                           |
-| ATMO        | Native (`code_zone`)                            | Lecture directe                                                                                           |
-| DVF         | Native dans le bulk (`code_commune`=75101 etc.) | Lecture directe — pas besoin des fichiers per-arrondissement                                              |
-| Sitadel     | `COMM` = commune-mère (75056) pour PLM          | Pour PLM, on dérive l'ARM depuis `ADR_CODPOST_TER` via `postalCodeToArmCitycode()` (lib/sitadel/utils.ts) |
+| Source      | Présence des 45 ARM                                                   | Comportement                                                                                              |
+| ----------- | --------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Filosofi    | Native (75101–75120, 69381–69389, 13201–13216)                        | Lecture directe                                                                                           |
+| RP Logement | Native                                                                | Lecture directe                                                                                           |
+| Radon       | Native                                                                | Lecture directe                                                                                           |
+| SSMSI       | Native (`CODGEO_2025`)                                                | Lecture directe                                                                                           |
+| ATMO        | Native (`code_zone`)                                                  | Lecture directe                                                                                           |
+| DVF         | Native dans le bulk (`code_commune`=75101 etc.)                       | Lecture directe — pas besoin des fichiers per-arrondissement                                              |
+| Sitadel     | `COMM` = commune-mère (75056) pour PLM                                | Pour PLM, on dérive l'ARM depuis `ADR_CODPOST_TER` via `postalCodeToArmCitycode()` (lib/sitadel/utils.ts) |
+| QPV / QRR   | QPV : `insee_com` = commune-mère pour PLM ; QRR : pas de code commune | Reverse-geocoding du centroïde via `geo.api.gouv.fr` à l'agrégation (`qpv_qrr_count`)                     |
 
 `isArm`, `masterCodeInsee`, `departement` sont remplis automatiquement via `communeIdentity()` (voir `scripts/data/context.ts`).
 

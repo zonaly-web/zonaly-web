@@ -80,6 +80,10 @@ model CommuneMetric {
   permitsCount12m              Int?
   sitadelAsOf                  String?
 
+  qpvCount   Int?
+  qrrCount   Int?
+  qpvQrrAsOf String?
+
   lastRefreshedAt DateTime @updatedAt
 
   @@index([departement])
