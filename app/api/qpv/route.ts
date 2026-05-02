@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma/prisma";
 import { QpvQuerySchema } from "@/lib/qpv/schemas";
 import { toMasterCommune } from "@/lib/atmo/utils";
+import { scoreQpv } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
         ],
       },
     });
-    return NextResponse.json({ count });
+    return NextResponse.json({ count, score: scoreQpv(count) });
   } catch {
     return NextResponse.json({ error: "db_error" }, { status: 502 });
   }

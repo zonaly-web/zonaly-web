@@ -1,5 +1,6 @@
 import { CeremaPrixQuerySchema, GeomutationPageSchema } from "@/lib/cerema/schemas";
 import { medianPriceM2 } from "@/lib/cerema/utils";
+import { scoreEvolution5Y, scorePrixMedianM2 } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 const UPSTREAM = "https://apidf-preprod.cerema.fr/dvf_opendata/geomutations/";
@@ -64,6 +65,8 @@ export async function GET(req: NextRequest) {
         baseYear: 0,
         prixMedianM2: null,
         evolution5Y: null,
+        prixMedianM2Score: null,
+        evolution5YScore: null,
       });
     }
     const baseYear = latestYear - 5;
@@ -81,11 +84,18 @@ export async function GET(req: NextRequest) {
         ? (prixMedianM2 - basePx) / basePx
         : null;
 
+    const [prixMedianM2Score, evolution5YScore] = await Promise.all([
+      scorePrixMedianM2(prixMedianM2),
+      Promise.resolve(scoreEvolution5Y(evolution5Y == null ? null : evolution5Y * 100)),
+    ]);
+
     return NextResponse.json({
       latestYear,
       baseYear,
       prixMedianM2,
       evolution5Y,
+      prixMedianM2Score,
+      evolution5YScore,
     });
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });

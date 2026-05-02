@@ -7,6 +7,7 @@ import {
   SspResponseSchema,
 } from "@/lib/georisques/schemas";
 import { countSitesPollues, mapRadonClasse, mapRgaMax } from "@/lib/georisques/utils";
+import { scoreArgile, scoreRadon, scoreSitesPollues } from "@/lib/scoring/rules";
 
 const BASE = "https://www.georisques.gouv.fr/api/v2";
 
@@ -50,10 +51,17 @@ export async function GET(req: NextRequest) {
       fetchUpstream("/rga", params, token, RgaResponseSchema),
     ]);
 
+    const sitesPolluesCount = countSitesPollues(ssp);
+    const radonLabel = mapRadonClasse(radon.content[0]?.classePotentiel);
+    const argileLabel = mapRgaMax(rga);
+
     return NextResponse.json({
-      sitesPolluesCount: countSitesPollues(ssp),
-      radon: mapRadonClasse(radon.content[0]?.classePotentiel),
-      argile: mapRgaMax(rga),
+      sitesPolluesCount,
+      radon: radonLabel,
+      argile: argileLabel,
+      radonScore: scoreRadon(radonLabel),
+      argileScore: scoreArgile(argileLabel),
+      sitesPolluesScore: scoreSitesPollues(sitesPolluesCount),
     });
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });

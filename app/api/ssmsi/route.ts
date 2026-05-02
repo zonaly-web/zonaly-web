@@ -4,6 +4,7 @@ import {
   SsmsiUpstreamResponseSchema,
 } from "@/lib/ssmsi/schemas";
 import { computeMetrics, pickLatestYear } from "@/lib/ssmsi/utils";
+import { scoreAgressions, scoreCambriolages } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 const RESOURCE_ID = "604d71b8-337d-4869-9226-49e01bae87df";
@@ -35,12 +36,23 @@ export async function GET(req: NextRequest) {
         year: 0,
         cambriolagesPer1000Logements: null,
         agressionsPer1000Habitants: null,
+        cambriolagesScore: null,
+        agressionsScore: null,
       };
       return NextResponse.json(empty);
     }
 
     const metrics = computeMetrics(upstream.data, year);
-    const payload: SsmsiApiResponse = { year, ...metrics };
+    const [cambriolagesScore, agressionsScore] = await Promise.all([
+      scoreCambriolages(metrics.cambriolagesPer1000Logements),
+      scoreAgressions(metrics.agressionsPer1000Habitants),
+    ]);
+    const payload: SsmsiApiResponse = {
+      year,
+      ...metrics,
+      cambriolagesScore,
+      agressionsScore,
+    };
     return NextResponse.json(payload);
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });
