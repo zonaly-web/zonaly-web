@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma/prisma";
 import { CommuneContourSchema, CommuneGeometry, QrrQuerySchema } from "@/lib/qrr/schemas";
+import { scoreQrr } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 async function fetchCommuneContour(citycode: string): Promise<CommuneGeometry> {
@@ -26,7 +27,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "geo_api_error" }, { status: 502 });
   }
   if (!geometry) {
-    return NextResponse.json({ count: 0 });
+    return NextResponse.json({ count: 0, score: scoreQrr(0) });
   }
 
   try {
@@ -39,7 +40,7 @@ export async function GET(req: NextRequest) {
       )
     `;
     const count = rows[0]?.count ?? 0;
-    return NextResponse.json({ count });
+    return NextResponse.json({ count, score: scoreQrr(count) });
   } catch {
     return NextResponse.json({ error: "db_error" }, { status: 502 });
   }

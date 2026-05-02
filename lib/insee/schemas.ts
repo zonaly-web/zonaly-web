@@ -25,6 +25,8 @@ export const InseeCommuneApiResponseSchema = z.object({
   partProprietaires: z.number().nullable(),
   filosofiYear: z.number().nullable(),
   rpYear: z.number().nullable(),
+  revenuMedianScore: z.number().nullable(),
+  partProprietairesScore: z.number().nullable(),
 });
 
 export type MelodiObservation = z.infer<typeof MelodiObservationSchema>;

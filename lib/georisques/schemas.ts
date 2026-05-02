@@ -44,5 +44,8 @@ export const GeorisquesEnvApiResponseSchema = z.object({
   sitesPolluesCount: z.number(),
   radon: z.string(),
   argile: z.string(),
+  radonScore: z.number().nullable(),
+  argileScore: z.number().nullable(),
+  sitesPolluesScore: z.number().nullable(),
 });
 export type GeorisquesEnvApiResponse = z.infer<typeof GeorisquesEnvApiResponseSchema>;

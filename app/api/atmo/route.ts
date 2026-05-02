@@ -1,5 +1,7 @@
 import { AtmoQuerySchema, TabularResponseSchema, type TabularRow } from "@/lib/atmo/schemas";
 import { toMasterCommune } from "@/lib/atmo/utils";
+import { prisma } from "@/lib/prisma/prisma";
+import { scoreAtmo } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 const RESOURCE_ID = "d2b9e8e6-8b0b-4bb6-9851-b4fa2efc8201";
@@ -27,12 +29,24 @@ export async function GET(req: NextRequest) {
   const master = toMasterCommune(citycode);
 
   try {
-    let row = await fetchLatestRow(citycode);
+    const [rowSelf, metric] = await Promise.all([
+      fetchLatestRow(citycode),
+      prisma.communeMetric.findUnique({
+        where: { codeInsee: citycode },
+        select: { atmoIndiceMoyen: true, atmoJoursMauvais: true, atmoAsOf: true },
+      }),
+    ]);
+    let row = rowSelf;
     let fallbackUsed = false;
     if (!row && master !== citycode) {
       row = await fetchLatestRow(master);
       fallbackUsed = !!row;
     }
+
+    const atmoScore = await scoreAtmo(
+      metric?.atmoIndiceMoyen ?? null,
+      metric?.atmoJoursMauvais ?? null,
+    );
 
     return NextResponse.json({
       codeQual: row?.code_qual ?? null,
@@ -40,6 +54,10 @@ export async function GET(req: NextRequest) {
       coulQual: row?.coul_qual ?? null,
       dateEch: row?.date_ech ?? null,
       fallbackUsed,
+      atmoIndiceMoyen: metric?.atmoIndiceMoyen ?? null,
+      atmoJoursMauvais: metric?.atmoJoursMauvais ?? null,
+      atmoAsOf: metric?.atmoAsOf ?? null,
+      atmoScore,
     });
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });

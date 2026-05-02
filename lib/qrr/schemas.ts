@@ -6,6 +6,7 @@ export const QrrQuerySchema = z.object({
 
 export const QrrApiResponseSchema = z.object({
   count: z.number().int().nonnegative(),
+  score: z.number().nullable(),
 });
 
 export type QrrApiResponse = z.infer<typeof QrrApiResponseSchema>;

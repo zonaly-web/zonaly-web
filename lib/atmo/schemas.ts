@@ -40,6 +40,10 @@ export const AtmoApiResponseSchema = z.object({
   coulQual: z.string().nullable(),
   dateEch: z.string().nullable(),
   fallbackUsed: z.boolean(),
+  atmoIndiceMoyen: z.number().nullable(),
+  atmoJoursMauvais: z.number().int().nullable(),
+  atmoAsOf: z.string().nullable(),
+  atmoScore: z.number().nullable(),
 });
 
 export type TabularRow = z.infer<typeof TabularRowSchema>;

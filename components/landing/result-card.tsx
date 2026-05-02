@@ -6,13 +6,14 @@ import { useInseeCommune } from "@/lib/insee/use-insee";
 import { useQpv } from "@/lib/qpv/use-qpv";
 import { useQrr } from "@/lib/qrr/use-qrr";
 import { useSsmsi } from "@/lib/ssmsi/use-ssmsi";
+import { useAtmo } from "@/lib/atmo/use-atmo";
 import { useOverpass } from "@/lib/overpass/use-overpass";
 import { useSitadel } from "@/lib/sitadel/use-sitadel";
-import { useAtmo } from "@/lib/atmo/use-atmo";
+import { aggregateDimension, aggregateGlobal } from "@/lib/scoring/aggregate";
+import { gradeColor, scoreToGrade, type BarColor } from "@/lib/scoring/grade";
+import type { Grade } from "@/lib/scoring/types";
 import { motion } from "motion/react";
-import type { ReactNode } from "react";
-
-type BarColor = "green" | "yellow-green" | "yellow" | "orange";
+import { useMemo, type ReactNode } from "react";
 
 type Metric = {
   label: string;
@@ -23,11 +24,13 @@ type Metric = {
 type Dimension = {
   name: string;
   dotColor: string;
-  score: "A" | "B" | "C";
+  score: number | null;
+  grade: Grade | null;
   scoreColorClass: string;
   metrics: Metric[];
   bar: { width: number; color: BarColor };
-  insight: string;
+  isLoading: boolean;
+  insight?: string;
 };
 
 type MetricValueProps = {
@@ -42,6 +45,31 @@ const barColorMap: Record<BarColor, string> = {
   "yellow-green": "bg-score-b",
   yellow: "bg-score-c",
   orange: "bg-score-d",
+  red: "bg-score-e",
+};
+
+const gradeTextColorMap: Record<Grade, string> = {
+  A: "text-score-a",
+  B: "text-score-b",
+  C: "text-score-c",
+  D: "text-score-d",
+  E: "text-score-e",
+};
+
+const gradeBgMap: Record<Grade, string> = {
+  A: "bg-score-a shadow-[0_4px_24px_rgba(29,185,84,0.35)]",
+  B: "bg-score-b shadow-[0_4px_24px_rgba(142,198,57,0.35)]",
+  C: "bg-score-c shadow-[0_4px_24px_rgba(230,168,23,0.35)]",
+  D: "bg-score-d shadow-[0_4px_24px_rgba(232,117,32,0.35)]",
+  E: "bg-score-e shadow-[0_4px_24px_rgba(224,64,64,0.35)]",
+};
+
+const dotColorByGrade: Record<Grade, string> = {
+  A: "var(--score-a)",
+  B: "var(--score-b)",
+  C: "var(--score-c)",
+  D: "var(--score-d)",
+  E: "var(--score-e)",
 };
 
 const eurFmt = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
@@ -141,6 +169,28 @@ function MetricValue({ kind, value, isLoading, isError }: MetricValueProps) {
   }
 }
 
+function buildDimension(
+  name: string,
+  score: number | null,
+  metrics: Metric[],
+  isLoading: boolean,
+  insight?: string,
+): Dimension {
+  const grade = isLoading ? null : scoreToGrade(score);
+  const color = gradeColor(grade);
+  return {
+    name,
+    score: isLoading ? null : score,
+    grade,
+    dotColor: grade ? dotColorByGrade[grade] : "var(--score-c)",
+    scoreColorClass: grade ? gradeTextColorMap[grade] : "text-white/40",
+    metrics,
+    bar: { width: isLoading ? 0 : (score ?? 0), color },
+    isLoading,
+    insight,
+  };
+}
+
 export function ResultCard({
   address,
   citycode,
@@ -148,35 +198,80 @@ export function ResultCard({
   address?: string;
   citycode?: string;
 } = {}) {
-  const { data, isLoading, isError } = useCeremaPrix(citycode);
+  const cerema = useCeremaPrix(citycode);
   const insee = useInseeCommune(citycode);
   const georisques = useGeorisques(citycode);
   const ssmsi = useSsmsi(citycode);
   const qpv = useQpv(citycode);
   const qrr = useQrr(citycode);
+  const atmo = useAtmo(citycode);
   const overpass = useOverpass(citycode);
   const sitadel = useSitadel(citycode);
-  const atmo = useAtmo(citycode);
-  const imobEnabled = !!citycode;
-  const envEnabled = !!citycode;
-  const secEnabled = !!citycode;
-  const lifeEnabled = !!citycode;
+  const enabled = !!citycode;
+
+  const immoLoading = enabled && (cerema.isLoading || insee.isLoading);
+  const envLoading = enabled && (atmo.isLoading || georisques.isLoading);
+  const secuLoading = enabled && (ssmsi.isLoading || qpv.isLoading || qrr.isLoading);
+  const globalLoading = immoLoading || envLoading || secuLoading;
+
+  const immoScore = useMemo(
+    () =>
+      enabled
+        ? aggregateDimension([
+            { score: cerema.data?.evolution5YScore ?? null, weight: 35 },
+            { score: insee.data?.partProprietairesScore ?? null, weight: 25 },
+            { score: insee.data?.revenuMedianScore ?? null, weight: 25 },
+            { score: cerema.data?.prixMedianM2Score ?? null, weight: 15 },
+          ])
+        : 92,
+    [enabled, cerema.data, insee.data],
+  );
+
+  const envScore = useMemo(
+    () =>
+      enabled
+        ? aggregateDimension([
+            { score: atmo.data?.atmoScore ?? null, weight: 35 },
+            { score: georisques.data?.radonScore ?? null, weight: 25 },
+            { score: georisques.data?.sitesPolluesScore ?? null, weight: 20 },
+            { score: georisques.data?.argileScore ?? null, weight: 20 },
+          ])
+        : 48,
+    [enabled, atmo.data, georisques.data],
+  );
+
+  const secuScore = useMemo(
+    () =>
+      enabled
+        ? aggregateDimension([
+            { score: ssmsi.data?.cambriolagesScore ?? null, weight: 40 },
+            { score: ssmsi.data?.agressionsScore ?? null, weight: 40 },
+            { score: qpv.data?.score ?? null, weight: 10 },
+            { score: qrr.data?.score ?? null, weight: 10 },
+          ])
+        : 72,
+    [enabled, ssmsi.data, qpv.data, qrr.data],
+  );
+
+  const globalScore = useMemo(
+    () => aggregateGlobal([immoScore, envScore, secuScore]),
+    [immoScore, envScore, secuScore],
+  );
+  const globalGrade = globalLoading ? null : scoreToGrade(globalScore);
 
   const dimensions: Dimension[] = [
-    {
-      name: "Immobilier",
-      dotColor: "var(--primary)",
-      score: "A",
-      scoreColorClass: "text-score-a",
-      metrics: [
+    buildDimension(
+      "Immobilier",
+      immoScore,
+      [
         {
           label: "Prix médian au m²",
-          value: imobEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="price"
-              value={data?.prixMedianM2}
-              isLoading={isLoading}
-              isError={isError}
+              value={cerema.data?.prixMedianM2}
+              isLoading={cerema.isLoading}
+              isError={cerema.isError}
             />
           ) : (
             "9 800 €"
@@ -184,33 +279,33 @@ export function ResultCard({
         },
         {
           label: "Évolution 5 ans",
-          value: imobEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="evolution"
-              value={data?.evolution5Y}
-              isLoading={isLoading}
-              isError={isError}
+              value={cerema.data?.evolution5Y}
+              isLoading={cerema.isLoading}
+              isError={cerema.isError}
             />
           ) : (
             "+47%"
           ),
         },
         {
-          label: "Part locataires",
-          value: imobEnabled ? (
+          label: "Part propriétaires",
+          value: enabled ? (
             <MetricValue
               kind="percent"
-              value={insee.data?.partLocataires}
+              value={insee.data?.partProprietaires}
               isLoading={insee.isLoading}
               isError={insee.isError}
             />
           ) : (
-            "73%"
+            "27%"
           ),
         },
         {
           label: "Revenu médian",
-          value: imobEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="eurYear"
               value={insee.data?.revenuMedianEurYr}
@@ -222,19 +317,18 @@ export function ResultCard({
           ),
         },
       ],
-      bar: { width: 92, color: "green" },
-      insight:
-        "Top 8% national. Marché très tendu, forte demande locative. Rendement brut estimé : 2,8–3,4%.",
-    },
-    {
-      name: "Environnement",
-      dotColor: "var(--score-c)",
-      score: "C",
-      scoreColorClass: "text-score-c",
-      metrics: [
+      immoLoading,
+      enabled
+        ? undefined
+        : "Top 8% national. Marché très tendu, forte demande locative. Rendement brut estimé : 2,8–3,4%.",
+    ),
+    buildDimension(
+      "Environnement",
+      envScore,
+      [
         {
           label: "Qualité de l'air",
-          value: envEnabled ? (
+          value: enabled ? (
             <AtmoMetricValue
               libQual={atmo.data?.libQual}
               coulQual={atmo.data?.coulQual}
@@ -247,7 +341,7 @@ export function ResultCard({
         },
         {
           label: "Argile (RGA)",
-          value: envEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={georisques.data?.argile}
               isLoading={georisques.isLoading}
@@ -259,7 +353,7 @@ export function ResultCard({
         },
         {
           label: "Sites pollués (commune)",
-          value: envEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={
                 georisques.data?.sitesPolluesCount != null
@@ -275,7 +369,7 @@ export function ResultCard({
         },
         {
           label: "Radon",
-          value: envEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={georisques.data?.radon}
               isLoading={georisques.isLoading}
@@ -286,19 +380,18 @@ export function ResultCard({
           ),
         },
       ],
-      bar: { width: 48, color: "yellow" },
-      insight:
-        "55e percentile national. AQI au-dessus du seuil OMS (25). Pas de risque naturel majeur.",
-    },
-    {
-      name: "Sécurité",
-      dotColor: "var(--score-b)",
-      score: "B",
-      scoreColorClass: "text-score-b",
-      metrics: [
+      envLoading,
+      enabled
+        ? undefined
+        : "55e percentile national. AQI au-dessus du seuil OMS (25). Pas de risque naturel majeur.",
+    ),
+    buildDimension(
+      "Sécurité",
+      secuScore,
+      [
         {
           label: "Cambriolages / 1 000 log.",
-          value: secEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="permille"
               value={ssmsi.data?.cambriolagesPer1000Logements}
@@ -311,7 +404,7 @@ export function ResultCard({
         },
         {
           label: "Agressions / 1 000 hab.",
-          value: secEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="permille"
               value={ssmsi.data?.agressionsPer1000Habitants}
@@ -324,7 +417,7 @@ export function ResultCard({
         },
         {
           label: qpv.data && qpv.data.count > 1 ? "Quartiers prioritaires" : "Quartier prioritaire",
-          value: secEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="other"
               value={qpv.data?.count}
@@ -340,7 +433,7 @@ export function ResultCard({
             qrr.data && qrr.data.count > 1
               ? "Zones sécurité prioritaires"
               : "Zone sécurité prioritaire",
-          value: secEnabled ? (
+          value: enabled ? (
             <MetricValue
               kind="other"
               value={qrr.data?.count}
@@ -352,36 +445,36 @@ export function ResultCard({
           ),
         },
       ],
-      bar: { width: 72, color: "yellow-green" },
-      insight:
-        "Top 38% des communes françaises. Taux dans la moyenne pour une grande ville touristique.",
-    },
-    {
-      name: "Vie de quartier",
-      dotColor: "var(--score-a)",
-      score: "A",
-      scoreColorClass: "text-score-a",
-      metrics: [
+      secuLoading,
+      enabled
+        ? undefined
+        : "Top 38% des communes françaises. Taux dans la moyenne pour une grande ville touristique.",
+    ),
+    // Vie de quartier : affichée mais non scorée pour une vraie analyse (exclue du global).
+    // En mode landing (démo), un score est affiché et l'insight est inclus.
+    buildDimension(
+      "Vie de quartier",
+      enabled ? null : 95,
+      [
         {
           label: "Transports",
-          value: lifeEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={
                 overpass.data?.transports != null
-                  ? `${eurFmt.format(overpass.data.transports)} arrêts`
+                  ? `${eurFmt.format(overpass.data.transports)} lignes`
                   : undefined
               }
               isLoading={overpass.isLoading}
               isError={overpass.isError}
             />
           ) : (
-            "12 arrêts"
+            "12 lignes"
           ),
-          valueClass: "text-score-a",
         },
         {
           label: "Commerces",
-          value: lifeEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={
                 overpass.data?.commerces != null
@@ -397,7 +490,7 @@ export function ResultCard({
         },
         {
           label: "Écoles",
-          value: lifeEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={
                 overpass.data?.ecoles != null ? eurFmt.format(overpass.data.ecoles) : undefined
@@ -411,7 +504,7 @@ export function ResultCard({
         },
         {
           label: "Permis récents",
-          value: lifeEnabled ? (
+          value: enabled ? (
             <EnvMetricValue
               value={
                 sitadel.data?.logementsAutorises != null
@@ -426,11 +519,15 @@ export function ResultCard({
           ),
         },
       ],
-      bar: { width: 95, color: "green" },
-      insight:
-        "Top 5% national. Accessibilité exceptionnelle. Quartier très dynamique commercialement.",
-    },
+      false,
+      enabled
+        ? undefined
+        : "Top 5% national. Accessibilité exceptionnelle. Quartier très dynamique commercialement.",
+    ),
   ];
+
+  const headerGrade: Grade | null = globalGrade ?? (enabled ? null : "B");
+  const headerBgClass = headerGrade ? gradeBgMap[headerGrade] : "bg-white/5";
 
   return (
     <section id="example" className="mx-auto max-w-[1100px] px-6 pt-10 pb-15">
@@ -453,8 +550,10 @@ export function ResultCard({
 
         {/* Header */}
         <div className="relative z-1 mb-11 flex flex-col items-start gap-7 sm:flex-row">
-          <div className="text-bg-dark bg-score-b grid h-[78px] w-[78px] shrink-0 place-items-center rounded-[20px] text-[2.1rem] font-extrabold tracking-[-0.02em] shadow-[0_4px_24px_rgba(142,198,57,0.35)]">
-            B
+          <div
+            className={`text-bg-dark grid h-[78px] w-[78px] shrink-0 place-items-center rounded-[20px] text-[2.1rem] font-extrabold tracking-[-0.02em] ${headerBgClass} ${globalLoading ? "animate-pulse text-white/30" : ""}`}
+          >
+            {globalLoading ? "" : (globalGrade ?? (enabled ? "—" : "B"))}
           </div>
           <div className="flex-1">
             <div className="mb-1.5 text-[0.7rem] font-semibold tracking-[0.1em] text-white/35 uppercase">
@@ -463,13 +562,16 @@ export function ResultCard({
             <h2 className="mb-3.5 text-[1.6rem] font-bold tracking-[-0.02em] text-white">
               {address ?? "12 rue de Rivoli, Paris 75001"}
             </h2>
-            <p className="text-[0.88rem] leading-[1.65] text-white/55">
-              Quartier globalement favorable à l&apos;investissement locatif. Point fort :
-              valorisation exceptionnelle (+47% sur 10 ans) et accessibilité maximale. Point de
-              vigilance : qualité de l&apos;air en deçà des recommandations OMS.
-            </p>
+            {!enabled ? (
+              <p className="text-[0.88rem] leading-[1.65] text-white/55">
+                Quartier globalement favorable à l&apos;investissement locatif. Point fort :
+                valorisation exceptionnelle (+47% sur 10 ans) et accessibilité maximale. Point de
+                vigilance : qualité de l&apos;air en deçà des recommandations OMS.
+              </p>
+            ) : null}
             <p className="mt-3 text-[0.72rem] text-white/25">
-              Analysé le 10 avril 2025 · Sources : DVF, INSEE, ATMO, SSMSI, IGN
+              {!enabled ? "Analysé le 10 avril 2025 · " : ""}Sources : DVF, INSEE, ATMO, SSMSI,
+              Géorisques
             </p>
           </div>
         </div>
@@ -499,7 +601,7 @@ export function ResultCard({
                 <div
                   className={`text-[1.5rem] leading-none font-extrabold tracking-[-0.02em] ${d.scoreColorClass}`}
                 >
-                  {d.score}
+                  {d.grade ?? "—"}
                 </div>
               </div>
 
@@ -535,9 +637,11 @@ export function ResultCard({
                 ))}
               </div>
 
-              <p className="mt-3.5 border-t border-white/[0.05] pt-3.5 text-[0.74rem] leading-[1.55] text-white/30">
-                {d.insight}
-              </p>
+              {d.insight ? (
+                <p className="mt-3.5 border-t border-white/[0.05] pt-3.5 text-[0.74rem] leading-[1.55] text-white/30">
+                  {d.insight}
+                </p>
+              ) : null}
             </div>
           ))}
         </div>

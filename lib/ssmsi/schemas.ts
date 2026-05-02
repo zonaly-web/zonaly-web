@@ -28,6 +28,8 @@ export const SsmsiApiResponseSchema = z.object({
   year: z.number(),
   cambriolagesPer1000Logements: z.number().nullable(),
   agressionsPer1000Habitants: z.number().nullable(),
+  cambriolagesScore: z.number().nullable(),
+  agressionsScore: z.number().nullable(),
 });
 
 export type SsmsiUpstreamRow = z.infer<typeof SsmsiUpstreamRowSchema>;

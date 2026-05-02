@@ -49,9 +49,7 @@ function parseArgs(argv: string[]): Args {
         .map((s) => s.trim())
         .filter(Boolean);
     } else if (a === "--help" || a === "-h") {
-      console.log(
-        "Usage: pnpm tsx scripts/refresh.ts [--only=name,...] [--no-cache] [--dry-run]",
-      );
+      console.log("Usage: pnpm tsx scripts/refresh.ts [--only=name,...] [--no-cache] [--dry-run]");
       console.log(`Sources: ${ALL_SOURCES.map((s) => s.name).join(", ")}`);
       process.exit(0);
     }

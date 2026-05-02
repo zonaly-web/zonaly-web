@@ -33,6 +33,8 @@ export const CeremaPrixApiResponseSchema = z.object({
   baseYear: z.number(),
   prixMedianM2: z.number().nullable(),
   evolution5Y: z.number().nullable(),
+  prixMedianM2Score: z.number().nullable(),
+  evolution5YScore: z.number().nullable(),
 });
 
 export type GeomutationProperties = z.infer<typeof GeomutationPropertiesSchema>;

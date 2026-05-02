@@ -1,5 +1,7 @@
 import { citycodeToGeo, parseFilosofi, parseRpLogement } from "@/lib/insee/utils";
 import { InseeCommuneQuerySchema, MelodiResponseSchema } from "@/lib/insee/schemas";
+import { prisma } from "@/lib/prisma/prisma";
+import { scorePartProprietaires, scoreRevenuMedian } from "@/lib/scoring/rules";
 import { NextRequest, NextResponse } from "next/server";
 
 const UPSTREAM = "https://api.insee.fr/melodi/data";
@@ -50,12 +52,24 @@ export async function GET(req: NextRequest) {
       year: rpYear,
     } = parseRpLogement(rp?.observations ?? null);
 
+    // Pour le scoring : lire CommuneMetric (revenuMedianEurUce, unité différente du EUR_YR live).
+    const metric = await prisma.communeMetric.findUnique({
+      where: { codeInsee: parsed.data.citycode },
+      select: { revenuMedianEurUce: true, partProprietaires: true },
+    });
+    const [revenuMedianScore, partProprietairesScore] = await Promise.all([
+      scoreRevenuMedian(metric?.revenuMedianEurUce ?? null),
+      scorePartProprietaires(metric?.partProprietaires ?? partProprietaires),
+    ]);
+
     return NextResponse.json({
       revenuMedianEurYr,
       partLocataires,
       partProprietaires,
       filosofiYear,
       rpYear,
+      revenuMedianScore,
+      partProprietairesScore,
     });
   } catch {
     return NextResponse.json({ error: "upstream_error" }, { status: 502 });
