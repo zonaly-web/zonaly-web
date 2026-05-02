@@ -7,6 +7,9 @@ import { filosofiSource } from "./sources/filosofi";
 import { radonSource } from "./sources/radon";
 import { ssmsiSource } from "./sources/ssmsi";
 import { rpLogementSource } from "./sources/rpLogement";
+import { atmoSource } from "./sources/atmo";
+import { sitadelSource } from "./sources/sitadel";
+import { dvfSource } from "./sources/dvf";
 import { qpvSource } from "./sources/qpv";
 import { qrrSource } from "./sources/qrr";
 import { logNullCounts } from "@/lib/batch/dbInsights";
@@ -19,6 +22,9 @@ const ALL_SOURCES: SourceModule[] = [
   radonSource,
   ssmsiSource,
   rpLogementSource,
+  atmoSource,
+  sitadelSource,
+  dvfSource,
   qpvSource,
   qrrSource,
 ];

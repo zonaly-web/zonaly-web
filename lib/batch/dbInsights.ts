@@ -15,6 +15,17 @@ const COMMUNE_METRIC_FIELDS = [
   "cambriolagesPer1000Logements",
   "agressionsPer1000Habitants",
   "ssmsiAsOf",
+  "prixMedianM2Eur",
+  "prixMedianM2EurNMinus5",
+  "prixMedianM2EvolutionPct",
+  "ventesCount",
+  "dvfAsOf",
+  "atmoIndiceMoyen",
+  "atmoJoursMauvais",
+  "atmoAsOf",
+  "permitsLogementsAutorises12m",
+  "permitsCount12m",
+  "sitadelAsOf",
 ] as const;
 
 export async function logNullCounts(prisma: PrismaClient, log: Logger): Promise<void> {

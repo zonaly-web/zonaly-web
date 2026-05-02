@@ -65,6 +65,21 @@ model CommuneMetric {
   agressionsPer1000Habitants   Float?
   ssmsiAsOf                    String?
 
+  prixMedianM2Eur          Float?
+  prixMedianM2EurNMinus5   Float?
+  prixMedianM2EvolutionPct Float?
+  ventesCount              Int?
+  dvfAsOf                  String?
+  dvfBaseYear              String?
+
+  atmoIndiceMoyen  Float?
+  atmoJoursMauvais Int?
+  atmoAsOf         String?
+
+  permitsLogementsAutorises12m Int?
+  permitsCount12m              Int?
+  sitadelAsOf                  String?
+
   lastRefreshedAt DateTime @updatedAt
 
   @@index([departement])
