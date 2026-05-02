@@ -64,3 +64,18 @@ export function armCitycodeToPostalCode(citycode: string): string | null {
   }
   return null;
 }
+
+/**
+ * Inverse de `armCitycodeToPostalCode` : à partir d'un code postal de
+ * Paris/Lyon/Marseille (ex. `"75001"`), retourne le code INSEE de
+ * l'arrondissement (ex. `"75101"`). Renvoie `null` si le code postal n'est
+ * pas un arrondissement PLM connu.
+ */
+export function postalCodeToArmCitycode(postalCode: string): string | null {
+  if (!/^\d{5}$/.test(postalCode)) return null;
+  const n = Number(postalCode);
+  if (n >= 75001 && n <= 75020) return String(n + 100);
+  if (n >= 69001 && n <= 69009) return String(n + 380);
+  if (n >= 13001 && n <= 13016) return String(n + 200);
+  return null;
+}

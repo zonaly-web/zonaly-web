@@ -1,5 +1,5 @@
 import { AtmoQuerySchema, TabularResponseSchema, type TabularRow } from "@/lib/atmo/schemas";
-import { getMasterCitycode } from "@/lib/atmo/utils";
+import { toMasterCommune } from "@/lib/atmo/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 const RESOURCE_ID = "d2b9e8e6-8b0b-4bb6-9851-b4fa2efc8201";
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   }
 
   const { citycode } = parsed.data;
-  const master = getMasterCitycode(citycode);
+  const master = toMasterCommune(citycode);
 
   try {
     let row = await fetchLatestRow(citycode);

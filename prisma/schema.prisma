@@ -13,9 +13,9 @@ datasource db {
 }
 
 model Qpv {
-  id         Int    @id @default(autoincrement())
+  id         Int                                         @id @default(autoincrement())
   fid        Int
-  code_qp    String @unique
+  code_qp    String                                      @unique
   lib_qp     String
   insee_reg  String?
   lib_reg    String
@@ -32,14 +32,60 @@ model Qpv {
 }
 
 model Qrr {
-  id         Int    @id @default(autoincrement())
+  id       Int                                         @id @default(autoincrement())
   nom      String
   dep      String
   service  String
   vague    Float
-  code_qrr String @unique
+  code_qrr String                                      @unique
   geometry Unsupported("geometry(MULTIPOLYGON, 4326)")
 
   @@index([geometry], type: Gist)
   @@index([dep])
+}
+
+model CommuneMetric {
+  codeInsee       String  @id
+  libelle         String?
+  isArm           Boolean @default(false)
+  masterCodeInsee String?
+  departement     String?
+
+  revenuMedianEurUce Float?
+  filosofiAsOf       String?
+
+  partLocataires    Float?
+  partProprietaires Float?
+  rpLogementAsOf    String?
+
+  radonClasse String?
+  radonAsOf   String?
+
+  cambriolagesPer1000Logements Float?
+  agressionsPer1000Habitants   Float?
+  ssmsiAsOf                    String?
+
+  prixMedianM2Eur          Float?
+  prixMedianM2EurNMinus5   Float?
+  prixMedianM2EvolutionPct Float?
+  ventesCount              Int?
+  dvfAsOf                  String?
+  dvfBaseYear              String?
+
+  atmoIndiceMoyen  Float?
+  atmoJoursMauvais Int?
+  atmoAsOf         String?
+
+  permitsLogementsAutorises12m Int?
+  permitsCount12m              Int?
+  sitadelAsOf                  String?
+
+  qpvCount   Int?
+  qrrCount   Int?
+  qpvQrrAsOf String?
+
+  lastRefreshedAt DateTime @updatedAt
+
+  @@index([departement])
+  @@index([isArm])
 }
