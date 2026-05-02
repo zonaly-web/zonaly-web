@@ -9,7 +9,7 @@
     "lint": "eslint",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "data:refresh": "tsx scripts/data/refresh.ts"
+    "data:refresh": "tsx scripts/refresh.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",

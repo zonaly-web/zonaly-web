@@ -50,7 +50,7 @@ function parseArgs(argv: string[]): Args {
         .filter(Boolean);
     } else if (a === "--help" || a === "-h") {
       console.log(
-        "Usage: pnpm tsx scripts/data/refresh.ts [--only=name,...] [--no-cache] [--dry-run]",
+        "Usage: pnpm tsx scripts/refresh.ts [--only=name,...] [--no-cache] [--dry-run]",
       );
       console.log(`Sources: ${ALL_SOURCES.map((s) => s.name).join(", ")}`);
       process.exit(0);
@@ -61,8 +61,8 @@ function parseArgs(argv: string[]): Args {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const cacheDir = path.resolve("scripts/data/cache");
-  const logsDir = path.resolve("scripts/data/logs");
+  const cacheDir = path.resolve("scripts/cache");
+  const logsDir = path.resolve("scripts/logs");
 
   const logger = createRootLogger(logsDir);
   logger.info("run started", {

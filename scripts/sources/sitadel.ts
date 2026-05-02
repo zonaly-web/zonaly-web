@@ -3,7 +3,7 @@ import { iterateCsvRows } from "@/lib/batch/csvStream";
 import { upsertCommuneMetrics } from "@/lib/batch/writer";
 import type { SitadelPermitRow } from "@/lib/sitadel/schemas";
 import { aggregatePermits, isoDateNMonthsAgo, postalCodeToArmCitycode } from "@/lib/sitadel/utils";
-import { communeIdentity, type SourceModule } from "../context";
+import { communeIdentity, SourceModule } from "../context";
 
 const URL = "https://www.data.gouv.fr/api/1/datasets/r/65a9e264-7a20-46a9-9d98-66becb817bc3";
 const WINDOW_MONTHS = 12;
