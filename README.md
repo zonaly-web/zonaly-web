@@ -1,3 +1,5 @@
+Outil d'analyse de la qualité d'un quartier sur 4 thèmes : immobilier, sécrutité, environnement & vie de quartier.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
